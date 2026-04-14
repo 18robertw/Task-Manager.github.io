@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workspace — Meeting Notes & Tasks</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#1a1a1a;padding:1rem}
+:root{
+--color-background-primary:#ffffff;--color-background-secondary:#f5f5f3;--color-background-tertiary:#eeede8;
+--color-background-info:#e6f1fb;--color-background-warning:#faeeda;--color-background-success:#eaf3de;--color-background-danger:#fcebeb;
+--color-text-primary:#1a1a1a;--color-text-secondary:#555550;--color-text-tertiary:#88887f;
+--color-text-info:#185fa5;--color-text-warning:#854f0b;--color-text-success:#3b6d11;--color-text-danger:#a32d2d;
+--color-border-tertiary:rgba(0,0,0,0.12);--color-border-secondary:rgba(0,0,0,0.22);--color-border-primary:rgba(0,0,0,0.32);
+--color-border-info:#b5d4f4;--color-border-warning:#fac775;--color-border-success:#c0dd97;--color-border-danger:#f7c1c1;
+--border-radius-md:8px;--border-radius-lg:12px;
+--font-sans:system-ui,-apple-system,sans-serif;--font-mono:ui-monospace,monospace;
+}
+input,button,select,textarea{font-family:var(--font-sans);font-size:14px;border-radius:var(--border-radius-md);outline:none}
+input[type=text],input[type=date],input[type=number]{padding:8px 10px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary)}
+input[type=text]:focus,input[type=date]:focus{border-color:var(--color-border-secondary)}
+button{padding:8px 16px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background .15s}
+button:hover{background:var(--color-background-secondary)}
+#app{padding:1rem 0;max-width:920px;margin:0 auto}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.sub-nav{display:flex;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden}
+.sub-btn{padding:7px 14px;background:none;border:none;border-right:0.5px solid var(--color-border-tertiary);cursor:pointer;font-size:12px;color:var(--color-text-secondary);transition:all .15s}
+.sub-btn:last-child{border-right:none}
+.sub-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.name-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.name-bar label{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.name-bar input{font-size:13px;width:130px;border:none;background:none;outline:none;color:var(--color-text-primary);padding:0}
+.view{display:none}.view.active{display:block}
+.toolbar{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.toolbar input[type=text]{flex:1;min-width:140px}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;min-height:24px}
+.fpill{font-size:12px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap}
+.fpill.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.notes-list,.tmpl-list{display:flex;flex-direction:column;gap:10px}
+.note-card,.tmpl-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;cursor:pointer;transition:border-color .15s}
+.note-card:hover,.tmpl-card:hover{border-color:var(--color-border-secondary)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.card-meta{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.card-preview{font-size:13px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-ais{margin-top:8px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.card-ais-lbl{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.card-ai-row{display:flex;align-items:baseline;gap:6px;font-size:13px;color:var(--color-text-secondary);padding:2px 0}
+.card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.cbadge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info)}
+.tbadge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning)}
+.tbadge-rm{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning)}
+.tbadge-rm button{background:none;border:none;cursor:pointer;color:var(--color-text-warning);font-size:11px;padding:0;margin-left:2px;line-height:1;opacity:.7}
+.tbadge-rm button:hover{opacity:1}
+.xbadge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px solid var(--color-border-tertiary)}
+.card-btns{display:flex;gap:2px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.todo-card-btns{display:flex;gap:2px;opacity:0;transition:opacity .15s;flex-shrink:0;align-items:flex-start;margin-top:1px}
+.todo-item:hover .todo-card-btns{opacity:1}
+.note-card:hover .card-btns,.tmpl-card:hover .card-btns{opacity:1}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:var(--border-radius-md);color:var(--color-text-secondary);font-size:13px;transition:background .15s}
+.icon-btn:hover{background:var(--color-background-secondary)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--color-text-secondary);font-size:14px}
+#wrapper{position:relative;min-height:500px}
+.panel{display:none;position:absolute;top:0;left:0;width:100%;min-height:100%;background:var(--color-background-primary);z-index:10;padding-bottom:2rem}
+.panel.open{display:block}
+.pb{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.pb button{background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-secondary);padding:4px 0}
+.fg{margin-bottom:1rem}
+.fl{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;display:block}
+.fg input[type=text],.fg input[type=date]{width:100%}
+.fg textarea{width:100%;resize:vertical;font-family:var(--font-sans);font-size:14px;line-height:1.7;color:var(--color-text-primary);padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);outline:none}
+.fg textarea:focus{border-color:var(--color-border-secondary)}
+.fg textarea::placeholder{color:var(--color-text-tertiary)}
+.ms-wrap{position:relative}
+.ms-trig{width:100%;padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;font-size:13px;color:var(--color-text-primary);text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ms-trig:hover{border-color:var(--color-border-secondary)}
+.ms-trig-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-dd{display:none;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-top:4px;overflow:hidden;z-index:30}
+.ms-dd.open{display:block}
+.ms-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:13px;color:var(--color-text-primary);transition:background .1s}
+.ms-opt:hover{background:var(--color-background-secondary)}
+.nr{display:flex;gap:6px;margin-top:6px}
+.nr input{flex:1;font-size:13px}
+.ai-list-w{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden}
+.ai-blk{padding:8px 12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.ai-blk:last-child{border-bottom:none}
+.ai-r1{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ai-r1 input[type=text]{flex:1;border:none;background:none;outline:none;font-size:14px;color:var(--color-text-primary);padding:0}
+.ai-r2{display:flex;align-items:center;gap:8px;padding-left:14px;flex-wrap:wrap}
+.ai-r2 label{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap}
+.ai-r2 input[type=text]{font-size:12px;padding:3px 8px;width:110px}
+.ai-r2 input[type=date]{font-size:12px;padding:3px 8px;width:140px}
+.aar{display:flex;gap:8px;margin-top:8px}
+.aar input{flex:1;font-size:13px}
+.tags-mgr{margin-bottom:1rem;padding:10px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.tags-mgr-h{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.tags-mgr-h span{font-size:12px;font-weight:500;color:var(--color-text-secondary)}
+.tags-mgr-h small{font-size:11px;color:var(--color-text-tertiary)}
+.tag-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px;min-height:22px}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px;border-radius:20px;background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning)}
+.tag-chip button{background:none;border:none;cursor:pointer;color:var(--color-text-warning);font-size:11px;padding:0;opacity:.7}
+.inline-tag{color:#854F0B;font-weight:500}
+.tag-ac{display:none;position:absolute;z-index:200;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);min-width:180px;overflow:hidden}
+.tag-ac.vis{display:block}
+.tag-ac-item{padding:7px 12px;cursor:pointer;font-size:13px;color:var(--color-text-primary);display:flex;align-items:center;gap:8px;transition:background .1s}
+.tag-ac-item:hover,.tag-ac-item.sel{background:var(--color-background-secondary)}
+.tag-ac-hint{font-size:11px;color:var(--color-text-tertiary);padding:5px 12px;border-top:0.5px solid var(--color-border-tertiary)}
+.tslash{color:#854F0B;font-weight:500}
+.todo-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:8px;background:var(--color-background-primary);overflow:hidden}
+.todo-main{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;cursor:pointer;transition:background .15s}
+.todo-main:hover{background:var(--color-background-secondary)}
+.todo-content{flex:1;min-width:0}
+.todo-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.todo-text{font-size:14px;color:var(--color-text-primary);line-height:1.4;flex:1}
+.todo-text.done{text-decoration:line-through;color:var(--color-text-tertiary)}
+.st-pill{font-size:11px;padding:2px 8px;border-radius:20px;cursor:pointer;border:0.5px solid;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.st-ns{background:var(--color-background-secondary);color:var(--color-text-secondary);border-color:var(--color-border-secondary)}
+.st-ip{background:var(--color-background-warning);color:var(--color-text-warning);border-color:var(--color-border-warning)}
+.st-cp{background:var(--color-background-success);color:var(--color-text-success);border-color:var(--color-border-success)}
+.todo-meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.tm{font-size:11px;color:var(--color-text-tertiary)}
+.tm span{color:var(--color-text-secondary)}
+.overdue{color:#A32D2D!important}
+.todo-arrow{font-size:11px;color:var(--color-text-tertiary);transition:transform .15s;flex-shrink:0;margin-top:2px}
+.todo-arrow.open{transform:rotate(90deg)}
+.todo-detail{display:none;padding:12px 14px 14px;border-top:0.5px solid var(--color-border-tertiary)}
+.todo-detail.open{display:block}
+.td-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.td-f{display:flex;flex-direction:column;gap:3px}
+.td-f label{font-size:11px;color:var(--color-text-tertiary)}
+.td-f input,.td-f select{font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none}
+.td-notes{width:100%;min-height:70px;resize:vertical;font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--color-text-primary);padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);outline:none;margin-bottom:10px}
+.td-notes:focus{border-color:var(--color-border-secondary)}
+.td-notes::placeholder{color:var(--color-text-tertiary)}
+.sub-section-lbl{font-size:11px;color:var(--color-text-secondary);font-weight:500;margin-bottom:6px}
+.sub-list{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.sub-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.sub-row input[type=text]{flex:1;border:none;background:none;outline:none;font-size:13px;color:var(--color-text-primary);padding:0}
+.sub-row input.st-done{text-decoration:line-through;color:var(--color-text-tertiary)}
+.add-sub-row{display:flex;gap:6px;margin-bottom:10px}
+.add-sub-row input{flex:1;font-size:12px;padding:5px 8px}
+.detail-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.todo-section-head{font-size:12px;font-weight:500;color:var(--color-text-secondary);padding:8px 0 6px;margin-bottom:8px;display:flex;justify-content:space-between;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tf-btns{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tf-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.tf-btn.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.add-todo-row{display:flex;gap:8px;margin-bottom:1rem}
+.add-todo-row input{flex:1}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.leg-meeting{background:#9FE1CB}
+.leg-ns{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary)}
+.leg-ip{background:#FAC775}
+.leg-cp{background:#C0DD97}
+.leg-od{background:#F7C1C1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:1rem}
+.cal-hdr{text-align:center;font-size:11px;color:var(--color-text-tertiary);padding:4px 0;font-weight:500}
+.cal-cell{min-height:78px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:4px;cursor:pointer;transition:border-color .1s;background:var(--color-background-primary);overflow:hidden}
+.cal-cell:hover{border-color:var(--color-border-secondary)}
+.cal-cell.today{border-color:var(--color-border-info);border-width:1.5px}
+.cal-cell.other-month .cal-date{opacity:.4}
+.cal-cell.selected{background:var(--color-background-secondary)}
+.cal-date{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:3px}
+.cal-cell.today .cal-date{color:var(--color-text-info)}
+.cal-dots{display:flex;flex-direction:column;gap:2px}
+.cal-dot{font-size:9px;line-height:1.3;padding:1px 4px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot-meeting{background:#E1F5EE;color:#085041}
+.dot-ns{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.dot-ip{background:#FAEEDA;color:#854F0B}
+.dot-cp{background:#EAF3DE;color:#3B6D11}
+.dot-od{background:#FCEBEB;color:#A32D2D}
+.dot-payday{background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;font-weight:500}
+.payday-pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;font-weight:500}
+.cal-day-detail{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;margin-top:6px}
+.cal-day-detail h3{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.cal-event{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--color-background-primary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);margin-bottom:6px;cursor:pointer;transition:border-color .1s}
+.cal-event:hover{border-color:var(--color-border-secondary)}
+.cal-event:last-child{margin-bottom:0}
+.cal-event-type{font-size:10px;padding:2px 6px;border-radius:20px;flex-shrink:0}
+.et-meeting{background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB}
+.et-task{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.cal-event-text{font-size:13px;color:var(--color-text-primary);flex:1}
+.dv-section{margin-bottom:1.5rem}
+.dv-section h3{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.dv-body{font-size:14px;color:var(--color-text-primary);line-height:1.7;white-space:pre-wrap}
+.dv-ai-row{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid var(--color-border-tertiary);margin-bottom:6px}
+.dv-ai-text{font-size:14px;color:var(--color-text-primary);margin-bottom:4px}
+.dv-ai-meta{display:flex;gap:10px;flex-wrap:wrap}
+.dv-ai-meta span{font-size:12px;color:var(--color-text-secondary)}
+.dv-ai-meta label{font-size:12px;color:var(--color-text-tertiary)}
+.transcript-box{font-size:13px;color:var(--color-text-secondary);line-height:1.6;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;max-height:200px;overflow-y:auto;white-space:pre-wrap;border:0.5px solid var(--color-border-tertiary)}
+.ctx-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:300;background:rgba(0,0,0,0.18);align-items:flex-start;justify-content:center;padding-top:2rem}
+.ctx-overlay.open{display:flex}
+.ctx-box{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:1.25rem;width:90%;max-width:700px;display:flex;flex-direction:column;gap:10px}
+.ctx-box h3{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.ctx-box textarea{min-height:280px;resize:none;font-family:var(--font-mono);font-size:11px;line-height:1.5;color:var(--color-text-secondary);padding:10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);outline:none}
+.ctx-box p{font-size:12px;color:var(--color-text-tertiary)}
+.ctx-btns{display:flex;gap:8px}
+.obj-section{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:12px}
+.obj-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.obj-section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary)}
+.obj-field-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.obj-field-row:last-child{border-bottom:none}
+.obj-field-name{flex:1;font-size:13px;color:var(--color-text-primary)}
+.obj-field-name.editing{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:2px 6px;background:var(--color-background-primary);outline:none}
+.obj-field-type{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary)}
+.obj-field-badge{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid}
+.badge-archived{background:var(--color-background-secondary);color:var(--color-text-tertiary);border-color:var(--color-border-tertiary)}
+.badge-hidden{background:var(--color-background-warning);color:var(--color-text-warning);border-color:var(--color-border-warning)}
+.obj-record-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.obj-record-row:last-child{border-bottom:none}
+.obj-record-name{flex:1;font-size:13px;color:var(--color-text-primary)}
+.obj-record-meta{font-size:11px;color:var(--color-text-tertiary)}
+.obj-add-row{display:flex;gap:8px;margin-top:10px}
+.obj-add-row input{flex:1;font-size:13px}
+.obj-actions{display:flex;gap:4px}
+
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary)}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sync-dot.connected{background:#3b6d11}
+.sync-dot.syncing{background:#854f0b;animation:pulse 1s infinite}
+.sync-dot.error{background:#a32d2d}
+.sync-dot.offline{background:#88887f}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.gdrive-signin{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;gap:1rem;text-align:center}
+.gdrive-signin p{font-size:14px;color:var(--color-text-secondary);max-width:360px;line-height:1.6}
+.gdrive-signin-btn{display:flex;align-items:center;gap:10px;padding:10px 20px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;font-size:14px;color:var(--color-text-primary);transition:background .15s}
+.gdrive-signin-btn:hover{background:var(--color-background-secondary)}
+
+.settings-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:500;background:var(--color-background-primary)}
+.settings-overlay.open{display:flex}
+.settings-sidebar{width:200px;min-height:100%;border-right:0.5px solid var(--color-border-tertiary);padding:1.25rem 0;flex-shrink:0;background:var(--color-background-secondary)}
+.settings-sidebar-header{font-size:13px;font-weight:500;color:var(--color-text-secondary);padding:0 1rem 0.75rem;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between}
+.settings-section-label{font-size:11px;color:var(--color-text-tertiary);padding:0.75rem 1rem 0.25rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:500}
+.settings-nav-item{padding:8px 1rem;font-size:13px;color:var(--color-text-secondary);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.settings-nav-item:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.settings-nav-item.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border-left-color:var(--color-text-info)}
+.settings-content{flex:1;padding:1.5rem;overflow-y:auto;max-width:680px}
+.settings-page{display:none}
+.settings-page.active{display:block}
+.settings-page h2{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.settings-page .subtitle{font-size:13px;color:var(--color-text-tertiary);margin-bottom:1.5rem}
+.data-field-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.data-field-card:hover{border-color:var(--color-border-secondary)}
+.data-field-card-header{display:flex;align-items:center;justify-content:space-between}
+.data-field-card-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.data-field-card-count{font-size:12px;color:var(--color-text-tertiary)}
+.data-field-card-desc{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+.data-field-editor{display:none;margin-top:12px;border-top:0.5px solid var(--color-border-tertiary);padding-top:12px}
+.data-field-editor.open{display:block}
+.field-item-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.field-item-row:last-child{border-bottom:none}
+.field-item-name{flex:1;font-size:14px;color:var(--color-text-primary);border:none;background:none;outline:none;padding:2px 4px;border-radius:var(--border-radius-md)}
+.field-item-name:focus{background:var(--color-background-secondary)}
+.field-item-count{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap}
+.field-add-row{display:flex;gap:8px;margin-top:10px}
+.field-add-row input{flex:1;font-size:13px}
+.gear-btn{background:none;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:6px 10px;cursor:pointer;color:var(--color-text-secondary);font-size:15px;line-height:1;transition:all .15s}
+.gear-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+
+.drag-handle{cursor:grab;color:var(--color-text-tertiary);font-size:14px;padding:0 4px;user-select:none;flex-shrink:0}
+.drag-handle:active{cursor:grabbing}
+.ai-blk.dragging{opacity:0.4;border:1.5px dashed var(--color-border-secondary)}
+.ai-blk.drag-over{border-top:2px solid var(--color-text-info)}
+</style>
+<script src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+<div id="app">
+  <div class="top-bar">
+    <div class="sub-nav">
+      <button class="sub-btn active" onclick="switchTab('notes')">Notes</button>
+      <button class="sub-btn" onclick="switchTab('todos')">Tasks</button>
+      <button class="sub-btn" onclick="switchTab('calendar')">Calendar</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="sync-bar" id="sync-bar" style="display:none">
+        <span class="sync-dot offline" id="sync-dot"></span>
+        <span id="sync-label">Connecting...</span>
+      </div>
+      <button onclick="openCtx()" style="font-size:12px;padding:6px 12px">↗ Share with Claude</button>
+      <button class="gear-btn" onclick="openSettings()" title="Settings">⚙</button>
+      <div class="name-bar"><label>Your name:</label><input type="text" id="uname" placeholder="e.g. Alex" oninput="saveUname()"></div>
+    </div>
+  </div>
+  <div id="gdrive-signin-overlay" style="display:none">
+  <div class="gdrive-signin">
+    <div style="font-size:32px">📁</div>
+    <p><strong>Sign in with Google</strong> to sync your notes and tasks across all your devices using Google Drive.</p>
+    <button class="gdrive-signin-btn" onclick="gdriveSignIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.57-.14-3.08-.38-4.55H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.12z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
+      Sign in with Google
+    </button>
+    <p style="font-size:12px;color:var(--color-text-tertiary)">Your data is stored in your own Google Drive. We never access anything outside this app's folder.</p>
+    <button onclick="skipGdriveSignIn()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--color-text-tertiary);text-decoration:underline;padding:0">Use without Google Drive (local only)</button>
+  </div>
+</div>
+<div id="wrapper" style="display:none">
+    <div id="view-notes" class="view active">
+      <div class="toolbar">
+        <input type="text" id="search-input" placeholder="Search notes, transcripts, action items..." oninput="renderNotes()">
+        <button onclick="openEditor(null)">+ new note</button>
+      </div>
+      <div id="notes-cat-filter" class="filter-bar"></div>
+      <div id="notes-att-filter" class="filter-bar"></div>
+      <div id="notes-list" class="notes-list"></div>
+    </div>
+    <div id="view-todos" class="view">
+      <div class="toolbar">
+        <input type="text" id="todo-search-input" placeholder="Search tasks..." oninput="renderTodos()">
+        <button onclick="openNewTodo()">+ new task</button>
+        <button onclick="scrollToTemplates()" style="background:none;border:0.5px solid var(--color-border-secondary)">Task Templates</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">Sort by:</label>
+          <select id="task-sort-select" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;cursor:pointer" onchange="taskSortBy=this.value;renderTodos()">
+            <option value="dueDate" selected>Due date</option>
+            <option value="status">Status</option>
+            <option value="assignedDate">Date assigned</option>
+            <option value="completedDate">Date completed</option>
+            <option value="text">Name (A–Z)</option>
+            <option value="owner">Owner</option>
+            <option value="source">Source</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">Group by:</label>
+          <select id="task-group-select" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;cursor:pointer" onchange="taskGroupBy=this.value;collapsedCats=new Set();renderTodos()">
+            <option value="category" selected>Category</option>
+            <option value="status">Status</option>
+            <option value="dueDate">Due date</option>
+            <option value="owner">Owner</option>
+            <option value="tags">Tag</option>
+            <option value="source">Source</option>
+            <option value="none">No grouping</option>
+          </select>
+        </div>
+      </div>
+      <div class="tf-btns">
+        <button class="tf-btn active" onclick="setTF('open')">Open</button>
+        <button class="tf-btn" onclick="setTF('upcoming')">Upcoming</button>
+        <button class="tf-btn" onclick="setTF('done')">Completed</button>
+        <button class="tf-btn" onclick="setTF('all')">All</button>
+      </div>
+      <div id="todos-cat-filter" class="filter-bar"></div>
+      <div id="todo-list"></div>
+
+    </div>
+    <div id="view-calendar" class="view">
+      <div class="cal-header">
+        <button class="icon-btn" onclick="calPrev()">←</button>
+        <span class="cal-title" id="cal-title"></span>
+        <button class="icon-btn" onclick="calNext()">→</button>
+        <button class="icon-btn" onclick="calToday()" style="font-size:12px;margin-left:8px;border:0.5px solid var(--color-border-tertiary);padding:4px 10px">Today</button>
+      </div>
+      <div class="cal-legend">
+        <span class="cal-legend-item"><span class="leg-dot leg-meeting"></span>Meeting</span>
+        <span class="cal-legend-item"><span class="leg-dot leg-ns"></span>Not started</span>
+        <span class="cal-legend-item"><span class="leg-dot leg-ip"></span>In progress</span>
+        <span class="cal-legend-item"><span class="leg-dot leg-cp"></span>Completed</span>
+        <span class="cal-legend-item"><span class="leg-dot leg-od"></span>Overdue</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="cal-day-detail"></div>
+    </div>
+
+    <div id="panel-templates" class="panel">
+      <div class="pb">
+        <button onclick="closePanel('templates')">← back to tasks</button>
+        <span style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-left:8px">Task Templates</span>
+        <button onclick="openTmplEditor(null)" style="margin-left:auto;font-size:12px;padding:5px 12px">+ new template</button>
+      </div>
+      <div id="tmpl-list" class="tmpl-list"></div>
+    </div>
+    <div id="panel-detail" class="panel">
+      <div class="pb"><button onclick="closePanel('detail')">← back</button><button onclick="editCurrent()" style="margin-left:auto;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:5px 14px;font-size:13px;cursor:pointer;background:none;color:var(--color-text-primary)">Edit note</button></div>
+      <div id="detail-content"></div>
+    </div>
+    <div id="panel-editor" class="panel">
+      <div class="pb"><button onclick="closePanel('editor')">← back</button><span id="editor-lbl" style="font-size:13px;color:var(--color-text-secondary)"></span></div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="fg" style="flex:2;min-width:180px"><label class="fl">Meeting name</label><input type="text" id="f-name" placeholder="e.g. Q3 Budget Review"></div>
+        <div class="fg" style="flex:1;min-width:120px"><label class="fl">Date</label><input type="date" id="f-date"></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:0;flex:2;min-width:180px">
+          <div class="fg">
+            <label class="fl">Contacts</label>
+            <div id="note-editor-attendees" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+              <select id="note-editor-att-select" style="font-size:12px;padding:4px 8px;flex:1;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none" onchange="addEditorAttendee(this.value);this.value=''">
+                <option value="">— add contact —</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="note-editor-att-new" placeholder="New contact..." style="font-size:12px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addNewEditorAttendee()">
+              <button onclick="addNewEditorAttendee()" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ add</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Tags</label>
+            <div id="note-editor-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+              <select id="note-editor-tag-select" style="font-size:12px;padding:4px 8px;flex:1;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none" onchange="addEditorTag(this.value);this.value=''">
+                <option value="">— add tag —</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="note-editor-tag-new" placeholder="New tag..." style="font-size:12px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addEditorTagNew()">
+              <button onclick="addEditorTagNew()" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ new</button>
+            </div>
+          </div>
+        </div>
+        <div class="fg" style="flex:1;min-width:160px"><label class="fl">Categories</label>
+          <div class="ms-wrap" id="ms-wrap"><button type="button" class="ms-trig" id="ms-trig" onclick="toggleMs()"><span class="ms-trig-txt" id="ms-txt">— none —</span><span style="font-size:10px;color:var(--color-text-tertiary)">▼</span></button><div class="ms-dd" id="ms-dd"></div></div>
+          <div class="nr"><input type="text" id="f-new-cat" placeholder="New category..." onkeydown="if(event.key==='Enter')addCat()"><button onclick="addCat()">+ add</button></div>
+        </div>
+      </div>
+      <div class="fg" style="position:relative"><label class="fl">Notes</label><textarea id="f-notes" style="min-height:110px" placeholder="Meeting notes — type / for tags..." oninput="onTAIn(event,'f-notes')" onkeydown="onTAKd(event,'f-notes')"></textarea></div>
+      <div class="fg" style="position:relative"><label class="fl">Transcript</label><textarea id="f-transcript" style="min-height:90px" placeholder="Paste meeting transcript — fully searchable..." oninput="onTAIn(event,'f-transcript')" onkeydown="onTAKd(event,'f-transcript')"></textarea></div>
+      <div class="fg"><label class="fl">Action items</label>
+        <div class="ai-list-w" id="ai-list"></div>
+        <div class="aar"><input type="text" id="ai-new-inp" placeholder="Add action item, press Enter" onkeydown="if(event.key==='Enter')addAI()"><button onclick="addAI()">+ add</button></div>
+      </div>
+      <button onclick="saveNote()">Save note</button>
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;min-height:16px" id="save-status"></div>
+    </div>
+    <div id="panel-tmpl" class="panel">
+      <div class="pb"><button onclick="closePanel('tmpl');renderTemplates();">← back to task templates</button></div>
+      <div class="fg"><label class="fl">Template name</label><input type="text" id="tmpl-name-inp" placeholder="e.g. Monthly Payroll, Q1 FP&A"></div>
+      <div class="fg">
+        <label class="fl">Base reference date <span style="font-weight:400;color:var(--color-text-tertiary)">(optional — set this to enter schedule dates per task instead of day offsets)</span></label>
+        <input type="date" id="tmpl-base-date" oninput="onTmplBaseDateChange()" style="width:200px">
+      </div>
+      <div class="fg">
+        <label class="fl">Categories</label>
+        <div id="tmpl-cats-display" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+          <select id="tmpl-cat-select" style="font-size:12px;padding:4px 8px;flex:1;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none">
+            <option value="">— add category —</option>
+          </select>
+          <button onclick="addTmplCatFromSelect()" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ add</button>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="tmpl-cat-new" placeholder="New category..." style="font-size:12px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addTmplCatNew()">
+          <button onclick="addTmplCatNew()" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ new</button>
+        </div>
+      </div>
+      <div class="fg"><label class="fl" style="margin-bottom:8px">Tasks <span style="font-weight:400;color:var(--color-text-tertiary)">(day offset = days from base date when deployed)</span></label>
+        <div class="ai-list-w" id="tmpl-task-list"></div>
+        <div class="aar"><input type="text" id="tmpl-new-task" placeholder="Task name, press Enter" onkeydown="if(event.key==='Enter')addTmplTask()"><button onclick="addTmplTask()">+ add task</button></div>
+      </div>
+      <button onclick="saveTmpl()">Save template</button>
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;min-height:16px" id="tmpl-save-status"></div>
+    </div>
+    <div class="tag-ac" id="tag-ac"></div>
+    
+  <div class="settings-overlay" id="settings-overlay">
+    <div class="settings-sidebar">
+      <div class="settings-sidebar-header">
+        Settings
+        <button onclick="closeSettings()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-tertiary);padding:0;line-height:1">✕</button>
+      </div>
+      <div class="settings-section-label">Objects</div>
+      <div id="settings-objects-nav"></div>
+      <div class="settings-section-label" style="margin-top:0.5rem">Data Management</div>
+      <div class="settings-nav-item" onclick="switchSettingsPage('data-fields')" id="snav-data-fields">Data Fields</div>
+      <div class="settings-nav-item" onclick="switchSettingsPage('sync')" id="snav-sync">Sync &amp; Backup</div>
+    </div>
+    <div class="settings-content">
+      <div id="settings-object-pages"></div>
+      <div class="settings-page" id="spage-data-fields">
+        <h2>Data Fields</h2>
+        <p class="subtitle">Manage the global lists used across notes, tasks, and templates.</p>
+        <div id="settings-data-fields-list"></div>
+      </div>
+      <div class="settings-page" id="spage-sync">
+        <h2>Sync &amp; Backup</h2>
+        <p class="subtitle">Transfer your data between devices by exporting and importing a backup file.</p>
+
+        <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Export data</div>
+          <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">Download all your notes, tasks, categories, tags, contacts and templates as a JSON file. Use this to back up your data or transfer it to another device.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="exportData()" style="font-size:13px;padding:7px 16px">⬇ Download backup</button>
+            <button onclick="exportToClipboard()" style="font-size:13px;padding:7px 16px;background:none;border:0.5px solid var(--color-border-secondary)">Copy to clipboard</button>
+          </div>
+          <div id="export-msg" style="font-size:12px;color:var(--color-text-success);margin-top:8px;min-height:16px"></div>
+        </div>
+
+        <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Import data</div>
+          <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">Import a backup file to restore or transfer your data. <strong style="color:var(--color-text-danger)">This will replace all current data on this device.</strong></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <label style="font-size:13px;padding:7px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:var(--color-background-primary)">
+              ⬆ Choose file
+              <input type="file" accept=".json" onchange="importFromFile(this)" style="display:none">
+            </label>
+            <button onclick="showPasteImport()" style="font-size:13px;padding:7px 16px;background:none;border:0.5px solid var(--color-border-secondary)">Paste JSON</button>
+          </div>
+          <div id="paste-import-area" style="display:none;margin-top:10px">
+            <textarea id="paste-import-ta" placeholder="Paste your exported JSON here..." style="width:100%;min-height:120px;font-family:var(--font-mono);font-size:12px;padding:8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;resize:vertical"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button onclick="importFromPaste()" style="font-size:13px;padding:6px 14px">Import</button>
+              <button onclick="document.getElementById('paste-import-area').style.display='none'" style="font-size:13px;padding:6px 14px;background:none;border:0.5px solid var(--color-border-tertiary)">Cancel</button>
+            </div>
+          </div>
+          <div id="import-msg" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+        </div>
+
+        <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem">
+          <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">How to sync between devices</div>
+          <ol style="font-size:13px;color:var(--color-text-secondary);margin:0;padding-left:1.25rem;line-height:2">
+            <li>On your <strong>desktop</strong> — click <strong>⬇ Download backup</strong> or <strong>Copy to clipboard</strong></li>
+            <li>Transfer the file to your phone (AirDrop, email, iCloud, Google Drive, etc.) — or paste the clipboard text</li>
+            <li>On your <strong>mobile</strong> — click <strong>⬆ Choose file</strong> or <strong>Paste JSON</strong></li>
+            <li>Your data will be immediately available on this device</li>
+          </ol>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:10px">Your data syncs automatically every time you make a change. Last sync status is shown in the top bar.</div>
+          <button onclick="gdriveSignOut()" style="margin-top:10px;font-size:12px;padding:5px 14px;background:none;border:0.5px solid var(--color-border-danger);color:var(--color-text-danger);border-radius:var(--border-radius-md);cursor:pointer">Sign out of Google Drive</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="ctx-overlay" id="ctx-overlay">
+      <div class="ctx-box">
+        <h3>Share context with Claude</h3>
+        <p>Copy this block and paste it at the start of a new chat. Claude will have full context of your notes, tasks, and structure.</p>
+        <textarea id="ctx-ta" readonly></textarea>
+        <div class="ctx-btns">
+          <button onclick="copyCtx()">Copy to clipboard</button>
+          <button onclick="closeCtx()" style="background:none;border:0.5px solid var(--color-border-tertiary)">Close</button>
+        </div>
+        <p id="ctx-copy-msg" style="min-height:16px;color:#3b6d11"></p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const STATUSES=['not_started','in_progress','completed'];
+const ST_LABEL={'not_started':'Not started','in_progress':'In progress','completed':'Completed'};
+const ST_CLASS={'not_started':'st-ns','in_progress':'st-ip','completed':'st-cp'};
+const DOT_CLASS={'not_started':'dot-ns','in_progress':'dot-ip','completed':'dot-cp'};
+let D={notes:[],todos:[],categories:[],tags:[],templates:[],attendees:[],owners:[]};
+let username='',todoFilter='open',notesCatF='all',todosCatF='all',notesAttF='all';
+let editingNoteId=null,viewingNoteId=null,editorAIs=[],editorCats=[],editorTags=[],editorAttendees=[];
+let editingTmplId=null,tmplTasks=[],tmplCats=[],tmplBaseDate='';
+let dragSrcIdx=null;
+let expandedTodos=new Set();
+let collapsedCats=new Set();
+let taskSortBy='dueDate';
+let taskGroupBy='category';
+let acS={active:false,field:null,fieldEl:null,slashPos:0,query:'',selIdx:0};
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelDate=null;
+
+// ── Google Drive Sync ──────────────────────────────────────────────────
+const GDRIVE_CLIENT_ID = '220667282395-vpj1mh2lf457alhgbb4mpp5e4rboifqu.apps.googleusercontent.com';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const GDRIVE_FILE_NAME = 'workspace_data.json';
+let gdriveToken = null;
+let gdriveFileId = null;
+let syncTimeout = null;
+let syncPending = false;
+
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+function setSyncStatus(state, label){
+  const bar = document.getElementById('sync-bar');
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if(!bar) return;
+  bar.style.display = 'flex';
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = label;
+}
+
+function gdriveSignIn(){
+  if(typeof google === 'undefined'){
+    setSyncStatus('error','Google script not loaded — check internet connection');
+    return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE_CLIENT_ID,
+    scope: GDRIVE_SCOPE,
+    callback: async (resp) => {
+      if(resp.error){ setSyncStatus('error','Sign-in failed: '+resp.error); return; }
+      gdriveToken = resp.access_token;
+      lsSet('gdrive_token', gdriveToken);
+      document.getElementById('gdrive-signin-overlay').style.display = 'none';
+      document.getElementById('wrapper').style.display = 'block';
+      setSyncStatus('syncing','Loading from Drive...');
+      await gdriveLoadData();
+      D.todos=D.todos.filter(t=>t.type!=='payday'&&t.type!=='payroll_processing');
+      autoCompletePaydays();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function skipGdriveSignIn(){
+  document.getElementById('gdrive-signin-overlay').style.display='none';
+  document.getElementById('wrapper').style.display='block';
+  const local=lsGet('workspace_v1');
+  if(local){applyLoadedData(JSON.parse(local));}
+  setSyncStatus('offline','Local only — not synced');
+  D.todos=D.todos.filter(t=>t.type!=='payday'&&t.type!=='payroll_processing');
+  autoCompletePaydays();render();
+}
+
+function gdriveSignOut(){
+  gdriveToken = null; gdriveFileId = null;
+  lsSet('gdrive_token','');
+  setSyncStatus('offline','Not signed in');
+  document.getElementById('gdrive-signin-overlay').style.display = 'block';
+  document.getElementById('wrapper').style.display = 'none';
+}
+
+async function gdriveFetch(url, options={}){
+  if(!gdriveToken) return null;
+  const resp = await fetch(url, {
+    ...options,
+    headers: { 'Authorization': 'Bearer ' + gdriveToken, ...(options.headers||{}) }
+  });
+  if(resp.status === 401){ gdriveSignOut(); return null; }
+  return resp;
+}
+
+async function gdriveFindFile(){
+  const r = await gdriveFetch(
+    'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22' + GDRIVE_FILE_NAME + '%22&fields=files(id)'
+  );
+  if(!r) return null;
+  const data = await r.json();
+  return (data.files && data.files.length) ? data.files[0].id : null;
+}
+
+async function gdriveLoadData(){
+  try{
+    setSyncStatus('syncing','Loading from Drive...');
+    gdriveFileId = await gdriveFindFile();
+    if(gdriveFileId){
+      const r = await gdriveFetch('https://www.googleapis.com/drive/v3/files/' + gdriveFileId + '?alt=media');
+      if(r && r.ok){
+        const parsed = await r.json();
+        applyLoadedData(parsed);
+        lsSet('workspace_v1', JSON.stringify(D));
+        setSyncStatus('connected', 'Synced with Drive');
+        render();
+        return;
+      }
+    }
+    // No Drive file yet — load from localStorage as fallback
+    const local = lsGet('workspace_v1');
+    if(local) applyLoadedData(JSON.parse(local));
+    setSyncStatus('connected','Connected — no backup yet');
+    render();
+  } catch(e){
+    setSyncStatus('error','Sync error');
+    const local = lsGet('workspace_v1');
+    if(local) applyLoadedData(JSON.parse(local));
+    render();
+  }
+}
+
+async function gdriveSaveData(){
+  lsSet('workspace_v1', JSON.stringify(D)); // Always save locally too
+  if(!gdriveToken){ setSyncStatus('offline','Saved locally only'); return; }
+  setSyncStatus('syncing','Saving...');
+  try{
+    const body = JSON.stringify(D);
+    if(!gdriveFileId){
+      // Create new file
+      const meta = JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] });
+      const form = new FormData();
+      form.append('metadata', new Blob([meta], {type:'application/json'}));
+      form.append('file', new Blob([body], {type:'application/json'}));
+      const r = await gdriveFetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+        { method:'POST', body: form }
+      );
+      if(r && r.ok){ const d=await r.json(); gdriveFileId=d.id; }
+    } else {
+      // Update existing file
+      await gdriveFetch(
+        'https://www.googleapis.com/upload/drive/v3/files/' + gdriveFileId + '?uploadType=media',
+        { method:'PATCH', headers:{'Content-Type':'application/json'}, body }
+      );
+    }
+    setSyncStatus('connected','Synced with Drive');
+  } catch(e){
+    setSyncStatus('error','Sync failed — saved locally');
+  }
+}
+
+// Debounced persist — batches rapid changes into one Drive write
+function persist(){
+  lsSet('workspace_v1', JSON.stringify(D));
+  if(syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(gdriveSaveData, 1500);
+}
+
+function applyLoadedData(parsed){
+  D = Object.assign({notes:[],todos:[],categories:[],tags:[],templates:[],attendees:[],owners:[]}, parsed);
+  D.notes.forEach(n=>{
+    if(!n.attendeeList) n.attendeeList=n.attendees?n.attendees.split(',').map(s=>s.trim()).filter(Boolean):[];
+    if(!n.tags) n.tags=[]; if(!n.cats) n.cats=[]; if(!n.actionItems) n.actionItems=[];
+  });
+  D.todos.forEach(t=>{
+    if(!t.subTasks) t.subTasks=[]; if(!t.cats) t.cats=[]; if(!t.tags) t.tags=[]; if(!t.status) t.status='not_started';
+  });
+  D.templates.forEach(tm=>{
+    if(!tm.cats) tm.cats=[]; if(!tm.tasks) tm.tasks=[];
+    tm.tasks.forEach(t=>{ if(!t.subTasks) t.subTasks=[]; });
+  });
+  if(!D.attendees) D.attendees=[];
+  if(!D.owners) D.owners=[];
+  if(!D.categories) D.categories=[];
+  if(!D.tags) D.tags=[];
+  const ownerSet=new Set(D.owners);
+  D.todos.forEach(t=>{ if(t.owner&&t.owner.trim()) ownerSet.add(t.owner.trim()); });
+  D.notes.forEach(n=>{ (n.actionItems||[]).forEach(a=>{ if(a.owner&&a.owner.trim()) ownerSet.add(a.owner.trim()); }); });
+  D.owners=[...ownerSet].sort();
+  const attSet=new Set(D.attendees);
+  D.notes.forEach(n=>{ (n.attendeeList||[]).forEach(a=>{ if(a) attSet.add(a); }); });
+  D.attendees=[...attSet].sort();
+}
+
+
+function load(){
+  const u=lsGet('ws_uname');if(u){username=u;document.getElementById('uname').value=username;}
+  const savedToken=lsGet('gdrive_token');
+  if(savedToken){
+    document.getElementById('wrapper').style.display='none';
+    document.getElementById('gdrive-signin-overlay').style.display='none';
+    gdriveToken=savedToken;
+    setSyncStatus('syncing','Connecting to Drive...');
+    // Validate token then load — no google object needed here, just fetch
+    fetch('https://oauth2.googleapis.com/tokeninfo?access_token='+savedToken)
+      .then(r=>r.json())
+      .then(info=>{
+        if(info.error_description||info.error){
+          gdriveToken=null;lsSet('gdrive_token','');
+          document.getElementById('gdrive-signin-overlay').style.display='block';
+          document.getElementById('wrapper').style.display='none';
+          setSyncStatus('offline','Session expired — please sign in again');
+          const local=lsGet('workspace_v1');
+          if(local){applyLoadedData(JSON.parse(local));}
+          autoCompletePaydays();render();
+        } else {
+          gdriveLoadData().then(()=>{
+            D.todos=D.todos.filter(t=>t.type!=='payday'&&t.type!=='payroll_processing');
+            autoCompletePaydays();
+          });
+        }
+      })
+      .catch(()=>{
+        // Offline — use local cache and show app
+        document.getElementById('wrapper').style.display='block';
+        document.getElementById('gdrive-signin-overlay').style.display='none';
+        const local=lsGet('workspace_v1');
+        if(local){applyLoadedData(JSON.parse(local));}
+        setSyncStatus('offline','Offline — using cached data');
+        D.todos=D.todos.filter(t=>t.type!=='payday'&&t.type!=='payroll_processing');
+        autoCompletePaydays();render();
+      });
+  } else {
+    document.getElementById('gdrive-signin-overlay').style.display='block';
+    document.getElementById('wrapper').style.display='none';
+    setSyncStatus('offline','Sign in to sync');
+    const local=lsGet('workspace_v1');
+    if(local){applyLoadedData(JSON.parse(local));}
+  }
+}
+
+function saveUname(){username=document.getElementById('uname').value.trim();lsSet('ws_uname',username);}
+function isMe(o){return o&&username&&o.toLowerCase().trim()===username.toLowerCase().trim();}
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+function switchTab(t){
+  ['notes','todos','calendar'].forEach((v,i)=>{
+    document.getElementById('view-'+v).classList.toggle('active',v===t);
+    document.querySelectorAll('.sub-btn')[i].classList.toggle('active',v===t);
+  });
+  closeAllPanels();
+  if(t==='calendar')renderCal();
+  else if(t==='notes')renderNotes();
+  else if(t==='todos'){renderTodos();renderTemplates();}
+}
+function expandWrapperToPanel(){
+  const openPanel=document.querySelector('.panel.open');
+  if(!openPanel)return;
+  const wrapper=document.getElementById('wrapper');
+  wrapper.style.minHeight=Math.max(500,openPanel.scrollHeight+40)+'px';
+}
+function openPanel(p){
+  closeAllPanels();
+  const panel=document.getElementById('panel-'+p);
+  panel.classList.add('open');
+  document.querySelectorAll('.view.active').forEach(v=>v.style.visibility='hidden');
+  // Let wrapper grow to fit panel — use RAF so panel has rendered first
+  requestAnimationFrame(()=>{
+    const wrapper=document.getElementById('wrapper');
+    wrapper.style.minHeight=Math.max(500,panel.scrollHeight+40)+'px';
+    // Re-check after images/content may have loaded
+    setTimeout(()=>{wrapper.style.minHeight=Math.max(500,panel.scrollHeight+40)+'px';},100);
+  });
+}
+function closePanel(p){
+  document.getElementById('panel-'+p).classList.remove('open');
+  document.querySelectorAll('.view').forEach(v=>v.style.visibility='');
+  document.getElementById('wrapper').style.minHeight='500px';
+  if(p==='templates')renderTodos();
+}
+function closeAllPanels(){
+  ['detail','editor','tmpl','templates'].forEach(p=>{const el=document.getElementById('panel-'+p);if(el)el.classList.remove('open');});
+  document.querySelectorAll('.view').forEach(v=>v.style.visibility='');
+  document.getElementById('wrapper').style.minHeight='500px';
+}
+
+function allCats(){const s=new Set([...(D.categories||[])]);(D.notes||[]).forEach(n=>(n.cats||[]).forEach(c=>s.add(c)));return[...s].sort();}
+function allTags(){return[...((D.tags)||[])].sort();}
+function extractTags(text){const f=[];const ms=(text||'').matchAll(/\/([A-Za-z0-9_]+)/g);for(const m of ms)if(D.tags.includes(m[1]))f.push(m[1]);return[...new Set(f)];}
+function renderTagsHtml(html){return html.replace(/\/([\w]+)/g,(m,tag)=>D.tags.includes(tag)?`<span class="inline-tag">/${esc(tag)}</span>`:m);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtD(ds){if(!ds)return'';const[y,m,d]=ds.split('-');return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+' '+parseInt(d)+', '+y;}
+function fmtTs(ts){if(!ts)return'';const d=new Date(ts);return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+function tagEditorHtml(id, currentTags, context){
+  // context = 'todo' | 'note'
+  const addFn  = context==='todo' ? `addTagToItem('${id}',this.value);this.value=''` : `addTagToNote('${id}',this.value);this.value=''`;
+  const newFn  = context==='todo' ? `addNewTagToItem('${id}')` : `addNewTagToNote('${id}')`;
+  const available = allTags().filter(t=>!currentTags.includes(t));
+  return `
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px" id="${context}-tags-${id}">
+      ${currentTags.map(t=>`<span class="tbadge-rm">${esc(t)}<button onclick="removeTagFromItem('${id}','${t}','${context}')">✕</button></span>`).join('')}
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+      <select style="font-size:12px;padding:4px 8px;flex:1;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none"
+        onchange="${addFn}">
+        <option value="">— add tag —</option>
+        ${available.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="text" id="${context}-tag-new-${id}" placeholder="New tag..." style="font-size:12px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')${newFn}">
+      <button onclick="${newFn}" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ new</button>
+    </div>`;
+}
+
+function rerenderTagBadges(id, context){
+  const item = context==='todo' ? D.todos.find(x=>x.id===id) : D.notes.find(x=>x.id===id);
+  if(!item) return;
+  const el = document.getElementById(context+'-tags-'+id);
+  if(el) el.innerHTML = (item.tags||[]).map(t=>`<span class="tbadge-rm">${esc(t)}<button onclick="removeTagFromItem('${id}','${t}','${context}')">✕</button></span>`).join('');
+  // refresh the select dropdown too
+  const sel = el ? el.nextElementSibling?.querySelector('select') : null;
+  if(sel){
+    const av = allTags().filter(t=>!(item.tags||[]).includes(t));
+    const fn = context==='todo' ? `addTagToItem('${id}',this.value);this.value=''` : `addTagToNote('${id}',this.value);this.value=''`;
+    sel.innerHTML = `<option value="">— add tag —</option>`+av.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  }
+}
+
+function removeTagFromItem(id, tag, context){
+  const item = context==='todo' ? D.todos.find(x=>x.id===id) : D.notes.find(x=>x.id===id);
+  if(!item) return;
+  item.tags = (item.tags||[]).filter(t=>t!==tag);
+  rerenderTagBadges(id, context);
+  persist();
+}
+
+function addTagToItem(id, tag){
+  if(!tag) return;
+  const t = D.todos.find(x=>x.id===id); if(!t) return;
+  if(!t.tags) t.tags=[];
+  if(!t.tags.includes(tag)) t.tags.push(tag);
+  rerenderTagBadges(id,'todo');
+  persist();
+}
+function addNewTagToItem(id){
+  const inp = document.getElementById('todo-tag-new-'+id); if(!inp||!inp.value.trim()) return;
+  const v = inp.value.trim().replace(/\s+/g,'_');
+  if(!D.tags.includes(v)){D.tags.push(v);persist();}
+  addTagToItem(id, v); inp.value='';
+}
+
+function addTagToNote(id, tag){
+  if(!tag) return;
+  const n = D.notes.find(x=>x.id===id); if(!n) return;
+  if(!n.tags) n.tags=[];
+  if(!n.tags.includes(tag)) n.tags.push(tag);
+  rerenderTagBadges(id,'note');
+  persist();
+}
+function addNewTagToNote(id){
+  const inp = document.getElementById('note-tag-new-'+id); if(!inp||!inp.value.trim()) return;
+  const v = inp.value.trim().replace(/\s+/g,'_');
+  if(!D.tags.includes(v)){D.tags.push(v);persist();}
+  addTagToNote(id, v); inp.value='';
+}
+
+
+function renderAttFilter(){
+  const el=document.getElementById('notes-att-filter');
+  if(!el)return;
+  if(!(D.attendees||[]).length){el.innerHTML='';return;}
+  el.innerHTML=[{v:'all',l:'All contacts'},...D.attendees.map(a=>({v:a,l:a}))].map(({v,l})=>
+    `<span class="fpill${notesAttF===v?' active':''}" onclick="setNotesAtt('${esc(v)}')">${esc(l)}</span>`
+  ).join('');
+}
+function setNotesAtt(a){notesAttF=a;renderAttFilter();renderNotes();}
+
+function renderNotes(){
+  renderCatFilter('notes-cat-filter','notes');
+  renderAttFilter();
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  let notes=D.notes.filter(n=>{
+    const mq=!q||(n.name||'').toLowerCase().includes(q)||(n.attendees||'').toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q)||(n.transcript||'').toLowerCase().includes(q)||((n.actionItems||[]).some(a=>(a.text||'').toLowerCase().includes(q)))||((n.cats||[]).join(' ')).toLowerCase().includes(q);
+    const matchCat=notesCatF==='all'||(n.cats||[]).includes(notesCatF);
+    const matchAtt=notesAttF==='all'||(n.attendeeList||[]).includes(notesAttF)||(n.attendees||'').includes(notesAttF);
+    if(n.hidden||n.archived)return false;
+    return mq&&matchCat&&matchAtt;
+  }).sort((a,b)=>new Date(b.date||b.created)-new Date(a.date||a.created));
+  const el=document.getElementById('notes-list');
+  if(!notes.length){el.innerHTML=`<div class="empty">${D.notes.length?'No notes match your search':'No meeting notes yet'}</div>`;return;}
+  el.innerHTML=notes.map(n=>{
+    const ais=n.actionItems||[];
+    const aisHtml=ais.length?`<div class="card-ais"><div class="card-ais-lbl">Action items</div>`+ais.map(a=>`<div class="card-ai-row"><span style="color:var(--color-text-tertiary);font-size:11px">•</span><span>${renderTagsHtml(esc(a.text))}</span>${a.owner?`<span style="font-size:11px;color:var(--color-text-tertiary)"> → ${esc(a.owner)}</span>`:''}${a.dueDate?`<span style="font-size:11px;color:var(--color-text-tertiary)"> · ${fmtD(a.dueDate)}</span>`:''}</div>`).join('')+`</div>`:'';
+    const cats=(n.cats||[]).map(c=>`<span class="cbadge">${esc(c)}</span>`).join('');
+    const tags=(n.tags||[]).map(t=>`<span class="tbadge">/${esc(t)}</span>`).join('');
+    return`<div class="note-card" onclick="openDetail('${n.id}')">
+      <div class="card-top"><div><div class="card-title">${esc(n.name||'Untitled')}</div><div class="card-meta">${n.date?fmtD(n.date):''}</div>
+          ${(n.attendeeList&&n.attendeeList.length)?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${n.attendeeList.map(a=>`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)">${esc(a)}</span>`).join('')}</div>`:(n.attendees?`<div class="card-meta">👥 ${esc(n.attendees)}</div>`:'')}</div>
+      <div class="card-btns" onclick="event.stopPropagation()"><button class="icon-btn" onclick="openEditor('${n.id}')">✎</button><button class="icon-btn" onclick="deleteNote('${n.id}')">✕</button></div></div>
+      ${n.body?`<div class="card-preview">${renderTagsHtml(esc(n.body.trim()))}</div>`:''}
+      ${aisHtml}
+      <div class="card-footer">${cats}${tags}${n.transcript?`<span class="xbadge">transcript</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function openDetail(id){
+  viewingNoteId=id;const n=D.notes.find(x=>x.id===id);if(!n)return;
+  const ais=n.actionItems||[];
+  let html=`<h2 style="font-size:20px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px">${esc(n.name||'Untitled')}</h2>`;
+  html+=`<div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:6px">${n.date?fmtD(n.date):''}</div>`;
+  if(n.attendeeList&&n.attendeeList.length)html+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1rem">${n.attendeeList.map(a=>`<span style="font-size:12px;padding:2px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)">${esc(a)}</span>`).join('')}</div>`;else if(n.attendees)html+=`<div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:1rem">👥 ${esc(n.attendees)}</div>`;
+  if((n.cats||[]).length||(n.tags||[]).length)html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem">${(n.cats||[]).map(c=>`<span class="cbadge">${esc(c)}</span>`).join('')}${(n.tags||[]).map(t=>`<span class="tbadge">/${esc(t)}</span>`).join('')}</div>`;
+  if(n.body)html+=`<div class="dv-section"><h3>Notes</h3><div class="dv-body">${renderTagsHtml(esc(n.body))}</div></div>`;
+  if(ais.length)html+=`<div class="dv-section"><h3>Action items</h3>`+ais.map(a=>`<div class="dv-ai-row"><div class="dv-ai-text">${renderTagsHtml(esc(a.text))}</div><div class="dv-ai-meta">${a.owner?`<span><label>Owner: </label>${esc(a.owner)}</span>`:''}${a.dueDate?`<span><label>Due: </label>${fmtD(a.dueDate)}</span>`:''}</div></div>`).join('')+`</div>`;
+  if(n.transcript&&n.transcript.trim())html+=`<div class="dv-section"><h3>Transcript</h3><div class="transcript-box">${esc(n.transcript)}</div></div>`;
+  document.getElementById('detail-content').innerHTML=html;
+  openPanel('detail');
+}
+function editCurrent(){if(viewingNoteId)openEditor(viewingNoteId);}
+
+function renderTodos(){
+  renderCatFilter('todos-cat-filter','todos');
+  const today=new Date(todayStr());
+  const todoQ=(document.getElementById('todo-search-input')?.value||'').toLowerCase();
+  const todos=D.todos.filter(t=>{
+    const due=t.dueDate?new Date(t.dueDate):null;
+    const isFuture=due&&due>today&&t.status!=='completed';
+    const sevenDaysOut=new Date(today);sevenDaysOut.setDate(sevenDaysOut.getDate()+7);
+    const withinWeek=due&&due<=sevenDaysOut;
+    if(todoFilter==='open'&&!(t.status!=='completed'&&(!due||withinWeek)))return false;
+    if(todoFilter==='upcoming'&&!(t.status!=='completed'&&due&&due>sevenDaysOut))return false;
+    if(todoFilter==='done'&&t.status!=='completed')return false;
+    if(todosCatF!=='all'&&!(t.cats||[]).includes(todosCatF))return false;
+    if(todoQ&&!(
+      (t.text||'').toLowerCase().includes(todoQ)||
+      (t.notes||'').toLowerCase().includes(todoQ)||
+      (t.owner||'').toLowerCase().includes(todoQ)||
+      (t.cats||[]).join(' ').toLowerCase().includes(todoQ)||
+      (t.tags||[]).join(' ').toLowerCase().includes(todoQ)||
+      (t.source||'').toLowerCase().includes(todoQ)||
+      (t.tmplSource||'').toLowerCase().includes(todoQ)||
+      (t.subTasks||[]).some(s=>(s.text||'').toLowerCase().includes(todoQ))
+    ))return false;
+    if(t.hidden||t.archived)return false;
+    return true;
+  });
+  const el=document.getElementById('todo-list');
+  if(!todos.length){el.innerHTML=`<div class="empty">${D.todos.length?'No tasks here':'No tasks yet'}</div>`;return;}
+
+  // ── Sort ──────────────────────────────────────────────────────────────
+  const sortFn = (a,b) => {
+    switch(taskSortBy){
+      case 'dueDate':{
+        const ad=a.dueDate||'9999';const bd=b.dueDate||'9999';
+        return ad<bd?-1:ad>bd?1:0;
+      }
+      case 'status':{
+        const order={'not_started':0,'in_progress':1,'completed':2};
+        return (order[a.status||'not_started']||0)-(order[b.status||'not_started']||0);
+      }
+      case 'assignedDate': return (b.assignedDate||0)-(a.assignedDate||0);
+      case 'completedDate': return (b.completedDate||0)-(a.completedDate||0);
+      case 'text': return (a.text||'').localeCompare(b.text||'');
+      case 'owner': return (a.owner||'').localeCompare(b.owner||'');
+      case 'source': return (a.source||a.tmplSource||'').localeCompare(b.source||b.tmplSource||'');
+      default: return 0;
+    }
+  };
+  const sorted=[...todos].sort(sortFn);
+
+  // ── Group ─────────────────────────────────────────────────────────────
+  const UNGROUPED='⊘ Ungrouped';
+  const grouped={};
+
+  const getGroupKeys = (t) => {
+    switch(taskGroupBy){
+      case 'category': return (t.cats&&t.cats.length)?t.cats:[UNGROUPED];
+      case 'status': return [{'not_started':'Not started','in_progress':'In progress','completed':'Completed'}[t.status||'not_started']||'Not started'];
+      case 'dueDate':{
+        if(!t.dueDate) return ['No due date'];
+        const d=new Date(t.dueDate+'T12:00:00');
+        const today=new Date(todayStr());
+        const diff=Math.round((d-today)/(1000*60*60*24));
+        if(diff<0) return ['Overdue'];
+        if(diff===0) return ['Today'];
+        if(diff<=7) return ['This week'];
+        if(diff<=14) return ['Next week'];
+        const m=d.toLocaleString('default',{month:'long',year:'numeric'});
+        return [m];
+      }
+      case 'owner': return [t.owner||'Unassigned'];
+      case 'tags': return (t.tags&&t.tags.length)?t.tags:['No tags'];
+      case 'source': return [t.source||t.tmplSource||'Added manually'];
+      case 'none': return ['all'];
+      default: return [UNGROUPED];
+    }
+  };
+
+  sorted.forEach(t=>{
+    getGroupKeys(t).forEach(k=>{
+      if(!grouped[k]) grouped[k]=[];
+      if(!grouped[k].find(x=>x.id===t.id)) grouped[k].push(t);
+    });
+  });
+
+  // Sort group keys
+  const dueOrder=['Overdue','Today','This week','Next week'];
+  const statusOrder=['Not started','In progress','Completed'];
+  const groupKeys=Object.keys(grouped).sort((a,b)=>{
+    if(taskGroupBy==='dueDate'){
+      const ai=dueOrder.indexOf(a);const bi=dueOrder.indexOf(b);
+      if(ai>-1&&bi>-1) return ai-bi;
+      if(ai>-1) return -1; if(bi>-1) return 1;
+      if(a==='No due date') return 1; if(b==='No due date') return 1;
+      return a.localeCompare(b);
+    }
+    if(taskGroupBy==='status'){
+      const ai=statusOrder.indexOf(a);const bi=statusOrder.indexOf(b);
+      return ai-bi;
+    }
+    if(a===UNGROUPED||a==='No tags'||a==='No due date'||a==='Unassigned'||a==='Added manually') return 1;
+    if(b===UNGROUPED||b==='No tags'||b==='No due date'||b==='Unassigned'||b==='Added manually') return -1;
+    return a.localeCompare(b);
+  });
+
+  let html='';
+  groupKeys.forEach((grp,idx)=>{
+    const items=grouped[grp];
+    const openCount=items.filter(t=>t.status!=='completed').length;
+    const isCollapsed=collapsedCats.has(grp);
+    const grpKey=grp.replace(/[^a-zA-Z0-9]/g,'_');
+    if(taskGroupBy!=='none'){
+      html+=`<div class="todo-section-head" style="margin-top:${idx>0?'1.25rem':'0'};cursor:pointer;user-select:none" onclick="toggleCat('${grp.replace(/'/g,"\\'")}')">
+        <span style="display:flex;align-items:center;gap:6px">
+          <span id="catarrow-${grpKey}" style="font-size:10px;color:var(--color-text-tertiary)">${isCollapsed?'▶':'▼'}</span>
+          <span>${esc(grp)}</span>
+        </span>
+        <span>${openCount} open · ${items.length} total</span>
+      </div>
+      <div id="catbody-${grpKey}" style="display:${isCollapsed?'none':'block'}">`;
+    }
+    html+=items.map(todoHtml).join('');
+    if(taskGroupBy!=='none') html+='</div>';
+  });
+  el.innerHTML=html||'<div class="empty">No tasks match your filters</div>';
+}
+
+function todoHtml(t){
+  // Pay Day todos: simple read-only display
+  if(t.type==='payday'){
+    const st=t.status||'not_started';
+    return`<div class="todo-item" style="border-color:#9FE1CB;background:#E1F5EE">
+      <div class="todo-main" style="cursor:default">
+        <div class="todo-content">
+          <div class="todo-top-row">
+            <span style="font-size:14px;font-weight:500;color:#085041">💰 ${esc(t.text)}</span>
+            <span class="payday-pill">${st==='completed'?'Paid ✓':'Upcoming'}</span>
+          </div>
+          <div class="todo-meta-row">
+            ${t.dueDate?`<span class="tm">date: <span style="color:#085041">${fmtD(t.dueDate)}</span></span>`:''}
+            ${st==='completed'&&t.completedDate?`<span class="tm">completed: <span>${fmtTs(t.completedDate)}</span></span>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const exp=expandedTodos.has(t.id);
+  const today=todayStr();
+  const od=t.dueDate&&t.status!=='completed'&&t.dueDate<today;
+  const cats=(t.cats||[]).map(c=>`<span class="cbadge" style="font-size:11px">${esc(c)}</span>`).join('');
+  const tags=(t.tags||[]).map(tg=>`<span class="tbadge" style="font-size:11px">/${esc(tg)}</span>`).join('');
+  const st=t.status||'not_started';
+  const subs=t.subTasks||[];
+  const doneCount=subs.filter(s=>s.status==='completed').length;
+  const subProg=subs.length?`<span class="tm">${doneCount}/${subs.length} subtasks</span>`:'';
+  return`<div class="todo-item" id="ti-${t.id}">
+    <div class="todo-main" onclick="toggleExp('${t.id}')">
+      <div class="todo-content">
+        <div class="todo-top-row">
+          <span class="todo-text${st==='completed'?' done':''}">${renderTagsHtml(esc(t.text))}</span>
+          <span class="st-pill ${ST_CLASS[st]}" onclick="event.stopPropagation();cycleStatus('${t.id}')">${ST_LABEL[st]}</span>
+        </div>
+        <div class="todo-meta-row">
+          ${cats}${tags}${subProg}
+          ${t.source?`<span class="tm">from: <span>${esc(t.source)}</span></span>`:''}
+          ${t.tmplSource?`<span class="tm">template: <span>${esc(t.tmplSource)}</span></span>`:''}
+          ${t.assignedDate?`<span class="tm">assigned: <span>${fmtTs(t.assignedDate)}</span></span>`:''}
+          ${t.dueDate?`<span class="tm">due: <span class="${od?'overdue':''}">${fmtD(t.dueDate)}</span></span>`:''}
+          ${t.status==='completed'&&t.completedDate?`<span class="tm">done: <span>${fmtTs(t.completedDate)}</span></span>`:''}
+        </div>
+        ${!exp?'<div style="font-size:10px;color:var(--color-text-tertiary);margin-top:3px">▼ click to edit</div>':''}
+      </div>
+      <div class="todo-card-btns" onclick="event.stopPropagation()">
+        <button class="icon-btn" title="Duplicate" onclick="duplicateTodo('${t.id}')" style="font-size:12px;padding:3px 5px">⧉</button>
+        <button class="icon-btn" title="Delete" onclick="deleteTodo('${t.id}')" style="font-size:12px;padding:3px 5px">✕</button>
+      </div>
+      <span class="todo-arrow${exp?' open':''}" id="ta-${t.id}">▶</span>
+    </div>
+    <div class="todo-detail${exp?' open':''}" id="td-${t.id}">
+      <div class="td-grid">
+        <div class="td-f"><label>Due date</label><input type="date" value="${t.dueDate||''}" onchange="updateTF('${t.id}','dueDate',this.value)"></div>
+        <div class="td-f"><label>Owner</label><input type="text" value="${esc(t.owner||'')}" placeholder="name" onchange="updateTF('${t.id}','owner',this.value)" style="width:110px"></div>
+        <div class="td-f"><label>Status</label><select onchange="setStatus('${t.id}',this.value)">${STATUSES.map(s=>`<option value="${s}"${(t.status||'not_started')===s?' selected':''}>${ST_LABEL[s]}</option>`).join('')}</select></div>
+        <div class="td-f" style="min-width:200px">
+          <label>Categories</label>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px" id="todo-cats-${t.id}">
+            ${(t.cats||[]).map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:20px">${esc(c)}<button onclick="toggleTodoCat('${t.id}','${esc(c)}',false);rerenderTodoCats('${t.id}')" style="background:none;border:none;cursor:pointer;color:var(--color-text-info);font-size:11px;padding:0;margin-left:2px;line-height:1">✕</button></span>`).join('')}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="todo-cat-select-${t.id}" style="font-size:12px;padding:4px 8px;flex:1;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none">
+              <option value="">— add category —</option>
+              ${allCats().filter(c=>!(t.cats||[]).includes(c)).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+            </select>
+            <button onclick="addTodoCatFromSelect('${t.id}')" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ add</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:5px">
+            <input type="text" id="todo-cat-new-${t.id}" placeholder="New category..." style="font-size:12px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addTodoCatNew('${t.id}')">
+            <button onclick="addTodoCatNew('${t.id}')" style="font-size:12px;padding:4px 10px;white-space:nowrap">+ new</button>
+          </div>
+        </div>
+        <div class="td-f" style="min-width:200px">
+          <label>Tags</label>
+          ${tagEditorHtml(t.id, t.tags||[], 'todo')}
+        </div>
+      </div>
+      <textarea class="td-notes" placeholder="Notes on this task..." onchange="updateTF('${t.id}','notes',this.value)">${esc(t.notes||'')}</textarea>
+      <div class="sub-section-lbl">Sub-tasks</div>
+      <div class="sub-list" id="sub-${t.id}">${(t.subTasks||[]).map(s=>subHtml(t.id,s)).join('')}</div>
+      <div class="add-sub-row"><input type="text" placeholder="Add sub-task, press Enter" onkeydown="addSubTask('${t.id}',event)"></div>
+      <div class="detail-btns">
+        <button class="detail-save" style="font-size:12px;padding:4px 14px" onclick="saveTodoDetail('${t.id}')">Save changes</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function subHtml(tid,s){
+  const st=s.status||'not_started';
+  return`<div class="sub-row" id="sub-row-${s.id}">
+    <span class="st-pill ${ST_CLASS[st]}" style="font-size:10px;padding:1px 6px;cursor:pointer" onclick="cycleSubStatus('${tid}','${s.id}')">${ST_LABEL[st]}</span>
+    <input type="text" class="${st==='completed'?'st-done':''}" value="${esc(s.text)}" onchange="updateSubText('${tid}','${s.id}',this.value)">
+    <button class="icon-btn" onclick="deleteSub('${tid}','${s.id}')" style="font-size:11px">✕</button>
+  </div>`;
+}
+
+function toggleExp(id){
+  const detail=document.getElementById('td-'+id);
+  const arrow=document.getElementById('ta-'+id);
+  if(!detail)return;
+  const open=detail.classList.toggle('open');
+  if(arrow)arrow.classList.toggle('open',open);
+  if(open)expandedTodos.add(id);else expandedTodos.delete(id);
+}
+function toggleCat(cat){
+  if(collapsedCats.has(cat))collapsedCats.delete(cat);
+  else collapsedCats.add(cat);
+  const body=document.getElementById('catbody-'+CSS.escape(cat));
+  const arrow=document.getElementById('catarrow-'+CSS.escape(cat));
+  if(body)body.style.display=collapsedCats.has(cat)?'none':'block';
+  if(arrow)arrow.textContent=collapsedCats.has(cat)?'▶':'▼';
+}
+function cycleStatus(id){
+  const t=D.todos.find(x=>x.id===id);if(!t)return;
+  const i=STATUSES.indexOf(t.status||'not_started');
+  t.status=STATUSES[(i+1)%3];
+  if(t.status==='completed')t.completedDate=Date.now();else delete t.completedDate;
+  persist();
+  // Update pill + text in-place
+  const pill=document.querySelector('#ti-'+id+' .st-pill');
+  if(pill){STATUSES.forEach(s=>pill.classList.remove(ST_CLASS[s]));pill.classList.add(ST_CLASS[t.status]);pill.textContent=ST_LABEL[t.status];}
+  const txt=document.querySelector('#ti-'+id+' .todo-text');
+  if(txt)txt.classList.toggle('done',t.status==='completed');
+  // Update select in detail if open
+  const sel=document.querySelector('#td-'+id+' select');
+  if(sel)sel.value=t.status;
+}
+function setStatus(id,v){const t=D.todos.find(x=>x.id===id);if(!t)return;t.status=v;if(v==='completed')t.completedDate=Date.now();else delete t.completedDate;persist();}
+function cycleSubStatus(tid,sid){const t=D.todos.find(x=>x.id===tid);if(!t)return;const s=(t.subTasks||[]).find(x=>x.id===sid);if(!s)return;const i=STATUSES.indexOf(s.status||'not_started');s.status=STATUSES[(i+1)%3];persist();const el=document.getElementById('sub-'+tid);if(el)el.innerHTML=(t.subTasks||[]).map(s2=>subHtml(tid,s2)).join('');}
+function updateTF(id,field,val){const t=D.todos.find(x=>x.id===id);if(t)t[field]=val;}
+function toggleTodoCat(id,cat,checked){
+  const t=D.todos.find(x=>x.id===id);if(!t)return;
+  if(!t.cats)t.cats=[];
+  if(checked){if(!t.cats.includes(cat))t.cats.push(cat);}
+  else{t.cats=t.cats.filter(c=>c!==cat);}
+}
+function rerenderTodoCats(id){
+  const t=D.todos.find(x=>x.id===id);if(!t)return;
+  const el=document.getElementById('todo-cats-'+id);
+  if(el)el.innerHTML=(t.cats||[]).map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:20px">${esc(c)}<button onclick="toggleTodoCat('${id}','${c}',false);rerenderTodoCats('${id}')" style="background:none;border:none;cursor:pointer;color:var(--color-text-info);font-size:11px;padding:0;margin-left:2px;line-height:1">✕</button></span>`).join('');
+  const sel=document.getElementById('todo-cat-select-'+id);
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— add category —</option>'+allCats().filter(c=>!(t.cats||[]).includes(c)).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  }
+}
+function addTodoCatFromSelect(id){
+  const sel=document.getElementById('todo-cat-select-'+id);
+  if(!sel||!sel.value)return;
+  toggleTodoCat(id,sel.value,true);
+  sel.value='';
+  rerenderTodoCats(id);
+}
+function addTodoCatNew(id){
+  const inp=document.getElementById('todo-cat-new-'+id);
+  if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim();
+  if(!D.categories.includes(v)){D.categories.push(v);D.categories.sort();persist();}
+  toggleTodoCat(id,v,true);
+  inp.value='';
+  rerenderTodoCats(id);
+}
+function updateSubText(tid,sid,val){const t=D.todos.find(x=>x.id===tid);if(!t)return;const s=(t.subTasks||[]).find(x=>x.id===sid);if(s)s.text=val;}
+function deleteSub(tid,sid){const t=D.todos.find(x=>x.id===tid);if(!t)return;t.subTasks=(t.subTasks||[]).filter(x=>x.id!==sid);persist();const el=document.getElementById('sub-'+tid);if(el)el.innerHTML=(t.subTasks||[]).map(s=>subHtml(tid,s)).join('');}
+function addSubTask(tid,e){if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;const t=D.todos.find(x=>x.id===tid);if(!t)return;if(!t.subTasks)t.subTasks=[];t.subTasks.push({id:uid(),text:v,status:'not_started'});e.target.value='';persist();const el=document.getElementById('sub-'+tid);if(el)el.innerHTML=(t.subTasks||[]).map(s=>subHtml(tid,s)).join('');}
+function saveTodoDetail(id){persist();const el=document.querySelector(`#ti-${id} .detail-save`);if(el){el.textContent='Saved ✓';setTimeout(()=>el.textContent='Save',1500);}}
+function deleteTodo(id){
+  D.todos=D.todos.filter(x=>x.id!==id);
+  expandedTodos.delete(id);
+  persist();renderTodos();
+}
+function duplicateTodo(id){const t=D.todos.find(x=>x.id===id);if(!t)return;const c={...t,id:uid(),status:'not_started',assignedDate:Date.now(),dueDate:'',notes:'',subTasks:(t.subTasks||[]).map(s=>({...s,id:uid(),status:'not_started'}))};delete c.completedDate;D.todos.push(c);expandedTodos.add(c.id);persist();renderTodos();}
+function scrollToTemplates(){
+  renderTemplates();
+  openPanel('templates');
+}
+
+function openNewTodo(){
+  const existing=document.getElementById('inline-new-todo');
+  if(existing){existing.querySelector('input').focus();return;}
+  const el=document.createElement('div');
+  el.id='inline-new-todo';
+  el.style.cssText='display:flex;gap:8px;margin-bottom:10px';
+  el.innerHTML=`<input type="text" id="inline-todo-inp" placeholder="New task name..." style="flex:1" onkeydown="if(event.key==='Enter')submitInlineTodo();if(event.key==='Escape')cancelInlineTodo()">
+    <button onclick="submitInlineTodo()" style="white-space:nowrap">Add</button>
+    <button onclick="cancelInlineTodo()" style="background:none;border:0.5px solid var(--color-border-tertiary)">✕</button>`;
+  const list=document.getElementById('todo-list');
+  list.parentNode.insertBefore(el,list);
+  document.getElementById('inline-todo-inp').focus();
+}
+function submitInlineTodo(){
+  const inp=document.getElementById('inline-todo-inp');
+  if(!inp)return;
+  const v=inp.value.trim();
+  if(v){
+    const cats=todosCatF!=='all'?[todosCatF]:[];
+    D.todos.push({id:uid(),text:v,status:'not_started',cats,tags:[],subTasks:[],assignedDate:Date.now()});
+    persist();renderTodos();
+  }
+  cancelInlineTodo();
+}
+function cancelInlineTodo(){
+  const el=document.getElementById('inline-new-todo');
+  if(el)el.remove();
+}
+function addManualTodo(e){if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;D.todos.push({id:uid(),text:v,status:'not_started',cats:todosCatF!=='all'?[todosCatF]:[],tags:extractTags(v),subTasks:[],assignedDate:Date.now()});e.target.value='';persist();renderTodos();}
+function setTF(f){todoFilter=f;document.querySelectorAll('.tf-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===f||(f==='open'&&b.textContent==='Open')));renderTodos();}
+
+function renderCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1);const last=new Date(calYear,calMonth+1,0);
+  const startDay=first.getDay();const todayISO=todayStr();
+  const notesByDate={},todosByDate={};
+  D.notes.forEach(n=>{if(n.date){if(!notesByDate[n.date])notesByDate[n.date]=[];notesByDate[n.date].push(n);}});
+  D.todos.forEach(t=>{if(t.dueDate){if(!todosByDate[t.dueDate])todosByDate[t.dueDate]=[];todosByDate[t.dueDate].push(t);}if(t.status==='completed'&&t.completedDate){const cd=new Date(t.completedDate).toISOString().slice(0,10);if(!todosByDate[cd])todosByDate[cd]=[];if(!todosByDate[cd].find(x=>x.id===t.id))todosByDate[cd].push(t);}});
+  const grid=document.getElementById('cal-grid');
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=days.map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+  let cells=[];
+  for(let i=0;i<startDay;i++){const d=new Date(calYear,calMonth,1-startDay+i);cells.push({date:d,cur:false});}
+  for(let i=1;i<=last.getDate();i++)cells.push({date:new Date(calYear,calMonth,i),cur:true});
+  const rem=(7-cells.length%7)%7;
+  for(let i=1;i<=rem;i++)cells.push({date:new Date(calYear,calMonth+1,i),cur:false});
+  cells.forEach(({date,cur})=>{
+    const iso=date.toISOString().slice(0,10);
+    const isToday=iso===todayISO;const isSel=iso===calSelDate;
+    const notes=notesByDate[iso]||[];const tasks=todosByDate[iso]||[];
+    let dotsHtml='';
+    notes.slice(0,2).forEach(n=>{dotsHtml+=`<div class="cal-dot dot-meeting">${esc(n.name||'Meeting')}</div>`;});
+    tasks.slice(0,3).forEach(t=>{
+      if(t.type==='payday'){dotsHtml+=`<div class="cal-dot dot-payday">💰 ${esc(t.text)}</div>`;return;}
+      const st=t.status||'not_started';const od=t.dueDate&&t.dueDate<todayISO&&st!=='completed';
+      dotsHtml+=`<div class="cal-dot ${od?'dot-od':DOT_CLASS[st]}">${esc(t.text)}</div>`;
+    });
+    html+=`<div class="cal-cell${!cur?' other-month':''}${isToday?' today':''}${isSel?' selected':''}" onclick="calSelectDay('${iso}')"><div class="cal-date">${date.getDate()}</div><div class="cal-dots">${dotsHtml}</div></div>`;
+  });
+  grid.innerHTML=html;
+  if(calSelDate)renderCalDay(calSelDate);else document.getElementById('cal-day-detail').innerHTML='';
+}
+function calSelectDay(iso){calSelDate=calSelDate===iso?null:iso;renderCal();}
+function renderCalDay(iso){
+  const notes=D.notes.filter(n=>n.date===iso);
+  const tasks=D.todos.filter(t=>t.dueDate===iso||(t.status==='completed'&&t.completedDate&&new Date(t.completedDate).toISOString().slice(0,10)===iso));
+  if(!notes.length&&!tasks.length){document.getElementById('cal-day-detail').innerHTML=`<div class="cal-day-detail"><h3>${fmtD(iso)}</h3><div style="font-size:13px;color:var(--color-text-tertiary)">No meetings or tasks on this day</div></div>`;return;}
+  const todayISO=todayStr();
+  let html=`<div class="cal-day-detail"><h3>${fmtD(iso)}</h3>`;
+  notes.forEach(n=>{html+=`<div class="cal-event" onclick="openDetail('${n.id}')"><span class="cal-event-type et-meeting">meeting</span><span class="cal-event-text">${esc(n.name||'Untitled')}${n.attendees?' · 👥 '+esc(n.attendees):''}</span></div>`;});
+  tasks.forEach(t=>{const st=t.status||'not_started';const od=t.dueDate&&t.dueDate<todayISO&&st!=='completed';html+=`<div class="cal-event"><span class="cal-event-type et-task" style="${od?'background:#fcebeb;color:#a32d2d;border-color:#f7c1c1':''}">${od?'overdue':ST_LABEL[st]}</span><span class="cal-event-text">${renderTagsHtml(esc(t.text))}</span><span class="st-pill ${ST_CLASS[st]}" style="font-size:11px">${ST_LABEL[st]}</span></div>`;});
+  html+=`</div>`;
+  document.getElementById('cal-day-detail').innerHTML=html;
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+function calToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();calSelDate=todayStr();renderCal();}
+
+function renderTemplates(){
+  const el=document.getElementById('tmpl-list');
+  if(!D.templates.length){el.innerHTML=`<div class="empty">No templates yet — create one for recurring cycles like Payroll or FP&A</div>`;return;}
+  el.innerHTML=D.templates.map(tmpl=>`<div class="tmpl-card">
+    <div class="card-top"><div class="card-title">${esc(tmpl.name)}</div><div class="card-btns"><button class="icon-btn" title="Edit" onclick="openTmplEditor('${tmpl.id}')">✎</button><button class="icon-btn" title="Duplicate" onclick="duplicateTmpl('${tmpl.id}')">⧉</button><button class="icon-btn" title="Delete" onclick="deleteTmpl('${tmpl.id}')">✕</button></div></div>
+    ${(tmpl.cats||[]).length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${(tmpl.cats||[]).map(c=>`<span class="cbadge">${esc(c)}</span>`).join('')}</div>`:''}
+    <div style="margin:8px 0;display:flex;flex-direction:column;gap:3px">${tmpl.tasks.map(t=>`<div style="display:flex;gap:8px;font-size:13px;color:var(--color-text-secondary);padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span style="color:var(--color-text-tertiary);font-size:11px">•</span><span style="flex:1">${esc(t.text)}</span>${t.dayOffset?`<span style="font-size:11px;color:var(--color-text-tertiary)">day +${t.dayOffset}</span>`:''}</div>`).join('')}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
+      <label style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">Deploy from base date:</label>
+      <input type="date" id="dp-${tmpl.id}" value="${todayStr()}" style="font-size:13px">
+      <button onclick="deployTmpl('${tmpl.id}')">Deploy to Tasks</button>
+        <button onclick="undeployTmpl('${tmpl.id}')" style="background:none;border:0.5px solid var(--color-border-danger);color:var(--color-text-danger);font-size:12px;padding:4px 12px;border-radius:var(--border-radius-md);cursor:pointer">✕ Un-deploy</button>
+    </div>
+  </div>`).join('');
+}
+function openTmplEditor(id){
+  editingTmplId=id;tmplTasks=[];tmplCats=[];
+  if(id){
+    const tm=D.templates.find(x=>x.id===id);
+    document.getElementById('tmpl-name-inp').value=tm.name||'';
+    tmplTasks=tm.tasks.map(t=>({recurrence:'none',recurrenceCount:12,recurrenceInterval:7,autoComplete:false,subTasks:[],cats:[],tags:[],...t}));
+    tmplCats=[...(tm.cats||[])];
+    tmplBaseDate=tm.baseDate||'';
+  }else{
+    document.getElementById('tmpl-name-inp').value='';
+    tmplBaseDate='';
+  }
+  document.getElementById('tmpl-base-date').value=tmplBaseDate;
+  document.getElementById('tmpl-save-status').textContent='';
+  renderTmplTasks();expandWrapperToPanel();
+  renderTmplCats();
+  openPanel('tmpl');
+}
+function renderTmplCats(){
+  const el=document.getElementById('tmpl-cats-display');
+  if(el)el.innerHTML=tmplCats.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:20px">${esc(c)}<button onclick="removeTmplCat('${esc(c)}')" style="background:none;border:none;cursor:pointer;color:var(--color-text-info);font-size:11px;padding:0;margin-left:2px;line-height:1">✕</button></span>`).join('');
+  const sel=document.getElementById('tmpl-cat-select');
+  if(sel)sel.innerHTML='<option value="">— add category —</option>'+allCats().filter(c=>!tmplCats.includes(c)).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+function removeTmplCat(c){tmplCats=tmplCats.filter(x=>x!==c);renderTmplCats();}
+function addTmplCatFromSelect(){
+  const sel=document.getElementById('tmpl-cat-select');
+  if(!sel||!sel.value)return;
+  if(!tmplCats.includes(sel.value))tmplCats.push(sel.value);
+  sel.value='';renderTmplCats();
+}
+function addTmplCatNew(){
+  const inp=document.getElementById('tmpl-cat-new');
+  if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim();
+  if(!D.categories.includes(v)){D.categories.push(v);D.categories.sort();persist();}
+  if(!tmplCats.includes(v))tmplCats.push(v);
+  inp.value='';renderTmplCats();
+}
+function onTmplBaseDateChange(){
+  tmplBaseDate=document.getElementById('tmpl-base-date').value||'';
+  renderTmplTasks();expandWrapperToPanel();
+}
+function calcDayOffset(baseDate, schedDate){
+  if(!baseDate||!schedDate) return 0;
+  const b=new Date(baseDate+'T12:00:00');
+  const s=new Date(schedDate+'T12:00:00');
+  return Math.round((s-b)/(1000*60*60*24));
+}
+function calcScheduleDate(baseDate, offset){
+  if(!baseDate) return '';
+  const d=new Date(baseDate+'T12:00:00');
+  d.setDate(d.getDate()+(offset||0));
+  return d.toISOString().slice(0,10);
+}
+function onTmplScheduleDate(i, val){
+  tmplTasks[i].scheduleDate=val;
+  if(tmplBaseDate&&val){
+    tmplTasks[i].dayOffset=calcDayOffset(tmplBaseDate,val);
+    // Update offset input in DOM directly
+    const offInp=document.querySelector('#tmpl-task-list .ai-blk:nth-child('+(i+1)+') input[type=number]');
+    if(offInp)offInp.value=tmplTasks[i].dayOffset;
+  }
+}
+function onTmplDayOffset(i, val){
+  tmplTasks[i].dayOffset=parseInt(val)||0;
+  if(tmplBaseDate){
+    tmplTasks[i].scheduleDate=calcScheduleDate(tmplBaseDate,tmplTasks[i].dayOffset);
+    // Update schedule date input in DOM directly
+    const dateInp=document.querySelector('#tmpl-task-list .ai-blk:nth-child('+(i+1)+') input[data-sched]');
+    if(dateInp)dateInp.value=tmplTasks[i].scheduleDate||'';
+  }
+}
+
+function onTmplDragStart(e,i){
+  dragSrcIdx=i;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{const el=document.querySelectorAll('#tmpl-task-list .ai-blk')[i];if(el)el.classList.add('dragging');},0);
+}
+function onTmplDragOver(e,i){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('#tmpl-task-list .ai-blk').forEach((el,idx)=>{
+    el.classList.toggle('drag-over',idx===i&&idx!==dragSrcIdx);
+  });
+}
+function onTmplDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function onTmplDrop(e,i){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===i)return;
+  const moved=tmplTasks.splice(dragSrcIdx,1)[0];
+  tmplTasks.splice(i,0,moved);
+  dragSrcIdx=null;
+  renderTmplTasks();expandWrapperToPanel();
+}
+function onTmplDragEnd(){
+  dragSrcIdx=null;
+  document.querySelectorAll('#tmpl-task-list .ai-blk').forEach(el=>{
+    el.classList.remove('dragging','drag-over');
+  });
+}
+
+function renderTmplTasks(){
+  const el=document.getElementById('tmpl-task-list');
+  if(!tmplTasks.length){el.innerHTML='<div style="padding:10px 12px;font-size:13px;color:var(--color-text-tertiary)">No tasks yet</div>';return;}
+  const RECUR_OPTS=['none','weekly','biweekly','monthly','quarterly','annual','custom'];
+  const RECUR_LABELS={'none':'No recurrence','weekly':'Weekly','biweekly':'Bi-weekly','monthly':'Monthly','quarterly':'Quarterly','annual':'Annual','custom':'Custom interval'};
+  el.innerHTML=tmplTasks.map((t,i)=>{
+    const r=t.recurrence||'none';
+    const hasRecur=r!=='none';
+    return`<div class="ai-blk" draggable="true"
+        ondragstart="onTmplDragStart(event,${i})"
+        ondragover="onTmplDragOver(event,${i})"
+        ondragleave="onTmplDragLeave(event)"
+        ondrop="onTmplDrop(event,${i})"
+        ondragend="onTmplDragEnd()">
+      <div class="ai-r1">
+        <span class="drag-handle" title="Drag to reorder">⠿</span>
+        <input type="text" value="${esc(t.text)}" placeholder="Task name" oninput="tmplTasks[${i}].text=this.value" style="flex:1;border:none;background:none;outline:none;font-size:14px;color:var(--color-text-primary);padding:0">
+        <button class="icon-btn" onclick="tmplTasks.splice(${i},1);renderTmplTasks()" style="font-size:12px">✕</button>
+      </div>
+      <div class="ai-r2" style="flex-wrap:wrap;row-gap:6px">
+        <label>Day offset:</label>
+        <input type="number" value="${t.dayOffset||0}" min="0" oninput="onTmplDayOffset(${i},this.value)" style="width:55px;font-size:12px;padding:3px 6px">
+        ${tmplBaseDate?`<label>Schedule date:</label><input type="date" data-sched="1" value="${calcScheduleDate(tmplBaseDate,t.dayOffset)||t.scheduleDate||''}" oninput="onTmplScheduleDate(${i},this.value)" style="font-size:12px;padding:3px 6px">`:''}
+        <label>Owner:</label>
+        <input type="text" value="${esc(t.owner||'')}" placeholder="name" oninput="tmplTasks[${i}].owner=this.value" style="font-size:12px;padding:3px 6px;width:90px">
+        <label>Auto-complete:</label>
+        <input type="checkbox" ${t.autoComplete?'checked':''} onchange="tmplTasks[${i}].autoComplete=this.checked" title="Auto-complete when date passes">
+      </div>
+      <div class="ai-r2" style="flex-wrap:wrap;row-gap:6px;margin-top:4px">
+        <label>Recurrence:</label>
+        <select style="font-size:12px;padding:3px 6px" onchange="tmplTasks[${i}].recurrence=this.value;renderTmplTasks()">
+          ${RECUR_OPTS.map(o=>`<option value="${o}"${r===o?' selected':''}>${RECUR_LABELS[o]}</option>`).join('')}
+        </select>
+        ${hasRecur?`<label>Count:</label><input type="number" value="${t.recurrenceCount||12}" min="1" max="60" oninput="tmplTasks[${i}].recurrenceCount=parseInt(this.value)||1" style="width:55px;font-size:12px;padding:3px 6px">`:''}
+        ${r==='custom'?`<label>Every N days:</label><input type="number" value="${t.recurrenceInterval||7}" min="1" oninput="tmplTasks[${i}].recurrenceInterval=parseInt(this.value)||7" style="width:55px;font-size:12px;padding:3px 6px">`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function addTmplTask(){const inp=document.getElementById('tmpl-new-task');const v=inp.value.trim();if(!v)return;tmplTasks.push({id:uid(),text:v,dayOffset:0,owner:'',recurrence:'none',recurrenceCount:12,recurrenceInterval:7,autoComplete:false,subTasks:[],cats:[],tags:[]});inp.value='';renderTmplTasks();expandWrapperToPanel();}
+function saveTmpl(){
+  const name=document.getElementById('tmpl-name-inp').value.trim()||'Untitled template';
+  const tasks=tmplTasks.filter(t=>t.text.trim());
+  const cats=[...tmplCats];
+  const baseDate=document.getElementById('tmpl-base-date').value||'';
+  if(editingTmplId){const i=D.templates.findIndex(x=>x.id===editingTmplId);D.templates[i]={...D.templates[i],name,tasks,cats,baseDate};}
+  else D.templates.push({id:uid(),name,tasks,cats,baseDate});
+  persist();document.getElementById('tmpl-save-status').textContent='Saved ✓';renderTemplates();setTimeout(()=>closePanel('tmpl'),600);
+}
+function deleteTmpl(id){
+  D.templates=D.templates.filter(x=>x.id!==id);
+  persist();renderTemplates();
+}
+function duplicateTmpl(id){
+  const tm=D.templates.find(x=>x.id===id);if(!tm)return;
+  const copy={...tm,id:uid(),name:tm.name+' (copy)',
+    cats:[...(tm.cats||[])],
+    tasks:tm.tasks.map(t=>({...t,id:uid(),subTasks:(t.subTasks||[]).map(s=>({...s,id:uid()}))}))};
+  D.templates.push(copy);
+  persist();renderTemplates();
+}
+function nextRecurDate(dateStr, recurrence, interval){
+  const d=new Date(dateStr+'T12:00:00');
+  if(recurrence==='weekly'){d.setDate(d.getDate()+7);}
+  else if(recurrence==='biweekly'){d.setDate(d.getDate()+14);}
+  else if(recurrence==='monthly'){d.setMonth(d.getMonth()+1);}
+  else if(recurrence==='quarterly'){d.setMonth(d.getMonth()+3);}
+  else if(recurrence==='annual'){d.setFullYear(d.getFullYear()+1);}
+  else if(recurrence==='custom'){d.setDate(d.getDate()+(interval||7));}
+  return d.toISOString().slice(0,10);
+}
+
+function generateOccurrences(firstDate,recurrence,count,interval){
+  const dates=[firstDate];
+  if(!recurrence||recurrence==='none')return dates;
+  for(let i=1;i<(count||1);i++){
+    dates.push(nextRecurDate(dates[dates.length-1],recurrence,interval));
+  }
+  return dates;
+}
+
+function deployTmpl(id){
+  const tmpl=D.templates.find(x=>x.id===id);if(!tmpl)return;
+  const bi=document.getElementById('dp-'+id);
+  const base=new Date(bi.value+'T12:00:00');if(isNaN(base)){alert('Set a valid base date');return;}
+  let added=0;
+  tmpl.tasks.forEach(task=>{
+    const firstDue=new Date(base);firstDue.setDate(firstDue.getDate()+(task.dayOffset||0));
+    const firstStr=firstDue.toISOString().slice(0,10);
+    // If task has explicit scheduleDate and no recurrence, use it directly
+    // (scheduleDate was calculated from base date; re-derive from deploy base to stay accurate)
+    const recur=task.recurrence||'none';
+    const count=recur==='none'?1:(task.recurrenceCount||1);
+    const dates=generateOccurrences(firstStr,recur,count,task.recurrenceInterval);
+    dates.forEach((dueDate,idx)=>{
+      D.todos.push({
+        id:uid(),
+        text:task.text+(count>1?' ('+(idx+1)+'/'+count+')':''),
+        status:'not_started',
+        owner:task.owner||'',
+        dueDate,
+        cats:[...(tmpl.cats||task.cats||[])],
+        tags:[...extractTags(task.text),...(tmpl.tags||[])],
+        subTasks:(task.subTasks||[]).map(s=>({...s,id:uid(),status:'not_started'})),
+        notes:'',
+        autoComplete:task.autoComplete||false,
+        recurrence:task.recurrence||'none',
+        recurrenceCount:task.recurrenceCount||1,
+        tmplSource:tmpl.name,
+        tmplId:tmpl.id,
+        assignedDate:Date.now(),
+        completedDate:undefined,
+        hidden:false,
+        archived:false,
+      });
+      added++;
+    });
+  });
+  // Ensure cats exist on template (backfill for older templates)
+  if(!tmpl.cats) tmpl.cats = [];
+  persist();
+  renderTodos();
+  switchTab('todos');
+  setTimeout(()=>{
+    const el=document.getElementById('todo-list');
+    if(el){
+      const msg=document.createElement('div');
+      msg.style.cssText='font-size:12px;color:var(--color-text-success);padding:6px 0;margin-bottom:8px;';
+      msg.textContent='✓ Deployed '+added+' task'+(added!==1?'s':'')+' from "'+tmpl.name+'"';
+      el.prepend(msg);
+      setTimeout(()=>msg.remove(),3000);
+    }
+  },150);
+}
+
+function undeployTmpl(id){
+  const tmpl=D.templates.find(x=>x.id===id);if(!tmpl)return;
+  const removed=D.todos.filter(t=>t.tmplSource===tmpl.name).length;
+  if(!removed){renderTemplates();return;}
+  D.todos=D.todos.filter(t=>t.tmplSource!==tmpl.name);
+  persist();renderTodos();renderTemplates();
+  console.log('Undeployed '+removed+' tasks from '+tmpl.name);
+}
+
+
+function renderCatFilter(elId,ctx){const cats=allCats();const el=document.getElementById(elId);if(!cats.length){el.innerHTML='';return;}const active=ctx==='notes'?notesCatF:todosCatF;el.innerHTML=[{v:'all',l:'All'},...cats.map(c=>({v:c,l:c}))].map(({v,l})=>`<span class="fpill${active===v?' active':''}" onclick="${ctx==='notes'?'setNC':'setTC'}('${esc(v)}')">${esc(l)}</span>`).join('');}
+function setNC(c){notesCatF=c;renderNotes();}
+function setTC(c){todosCatF=c;renderTodos();}
+
+function toggleTagsMgr(){renderTagChips();}
+function renderTagChips(){const el=document.getElementById('tag-chip-list');const tags=allTags();el.innerHTML=tags.length?tags.map(t=>`<span class="tag-chip">/${esc(t)}<button onclick="deleteTag('${esc(t)}')">✕</button></span>`).join(''):'<span style="font-size:12px;color:var(--color-text-tertiary)">No tags yet</span>';}
+function addTag(){const inp=document.getElementById('new-tag-inp');const v=inp.value.trim().replace(/\s+/g,'_');if(!v)return;if(!D.tags.includes(v))D.tags.push(v);inp.value='';persist();renderTagChips();}
+function deleteTag(t){D.tags=D.tags.filter(x=>x!==t);persist();renderTagChips();}
+
+function toggleMs(){const dd=document.getElementById('ms-dd');const o=dd.classList.toggle('open');if(o)renderMsOpts();}
+function closeMsDD(){document.getElementById('ms-dd').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('settings-overlay').classList.contains('open'))closeSettings();});
+document.addEventListener('click',e=>{if(!document.getElementById('ms-wrap')?.contains(e.target))closeMsDD();if(!document.getElementById('tag-ac')?.contains(e.target)&&!e.target.closest('textarea')&&!e.target.closest('.ai-r1'))hideAc();});
+function renderMsOpts(){const cats=allCats();const dd=document.getElementById('ms-dd');dd.innerHTML=cats.length?cats.map(c=>`<label class="ms-opt"><input type="checkbox" ${editorCats.includes(c)?'checked':''} onchange="toggleEdCat('${esc(c)}',this.checked)">${esc(c)}</label>`).join(''):'<div style="padding:8px 12px;font-size:13px;color:var(--color-text-tertiary)">No categories yet</div>';}
+function toggleEdCat(c,chk){if(chk){if(!editorCats.includes(c))editorCats.push(c);}else editorCats=editorCats.filter(x=>x!==c);updateMsTxt();renderMsOpts();}
+function updateMsTxt(){document.getElementById('ms-txt').textContent=editorCats.length?editorCats.join(', '):'— none —';}
+function addCat(){const inp=document.getElementById('f-new-cat');const v=inp.value.trim();if(!v)return;if(!D.categories.includes(v)){D.categories.push(v);D.categories.sort();}if(!editorCats.includes(v))editorCats.push(v);inp.value='';updateMsTxt();renderMsOpts();}
+
+function renderEditorAttendees(){
+  const el=document.getElementById('note-editor-attendees');
+  if(el)el.innerHTML=editorAttendees.map(a=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary)">${esc(a)}<button onclick="removeEditorAttendee('${esc(a)}')" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:11px;padding:0;margin-left:2px;line-height:1">✕</button></span>`).join('');
+  const sel=document.getElementById('note-editor-att-select');
+  if(sel)sel.innerHTML='<option value="">— add contact —</option>'+D.attendees.filter(a=>!editorAttendees.includes(a)).map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+}
+function addEditorAttendee(v){
+  if(!v||editorAttendees.includes(v))return;
+  editorAttendees.push(v);
+  renderEditorAttendees();
+}
+function removeEditorAttendee(v){
+  editorAttendees=editorAttendees.filter(a=>a!==v);
+  renderEditorAttendees();
+}
+function addNewEditorAttendee(){
+  const inp=document.getElementById('note-editor-att-new');
+  if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim();
+  if(!D.attendees.includes(v)){D.attendees.push(v);D.attendees.sort();}
+  if(!D.owners.includes(v)){D.owners.push(v);D.owners.sort();}
+  persist();
+  addEditorAttendee(v);
+  inp.value='';
+}
+
+function renderEditorTags(){
+  const el=document.getElementById('note-editor-tags');
+  if(el) el.innerHTML=editorTags.map(t=>`<span class="tbadge-rm">${esc(t)}<button onclick="removeEditorTag('${esc(t)}')">✕</button></span>`).join('');
+  const sel=document.getElementById('note-editor-tag-select');
+  if(sel) sel.innerHTML='<option value="">— add tag —</option>'+allTags().filter(t=>!editorTags.includes(t)).map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+}
+function addEditorTag(v){if(!v||editorTags.includes(v))return;editorTags.push(v);renderEditorTags();}
+function removeEditorTag(v){editorTags=editorTags.filter(t=>t!==v);renderEditorTags();}
+function addEditorTagNew(){
+  const inp=document.getElementById('note-editor-tag-new');if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim().replace(/\s+/g,'_');
+  if(!D.tags.includes(v)){D.tags.push(v);persist();}
+  addEditorTag(v);inp.value='';
+}
+
+function onTAIn(e,fid){const el=document.getElementById(fid);const val=el.value;const pos=el.selectionStart;const m=val.slice(0,pos).match(/\/(\w*)$/);if(m){const tags=allTags().filter(t=>t.toLowerCase().startsWith(m[1].toLowerCase()));if(tags.length){acS={active:true,field:fid,fieldEl:el,slashPos:pos-m[0].length,query:m[1],selIdx:0};showAc(el,tags);return;}}hideAc();}
+function onTAKd(e,fid){if(!acS.active)return;const tags=allTags().filter(t=>t.toLowerCase().startsWith(acS.query.toLowerCase()));if(e.key==='ArrowDown'){e.preventDefault();acS.selIdx=Math.min(acS.selIdx+1,tags.length-1);renderAcItems(tags);}else if(e.key==='ArrowUp'){e.preventDefault();acS.selIdx=Math.max(acS.selIdx-1,0);renderAcItems(tags);}else if(e.key==='Enter'||e.key==='Tab'){if(tags.length){e.preventDefault();insertTag(tags[acS.selIdx]);}}else if(e.key==='Escape')hideAc();}
+function onAiIn(e,i){editorAIs[i].text=e.target.value;const el=e.target;const val=el.value;const pos=el.selectionStart;const m=val.slice(0,pos).match(/\/(\w*)$/);if(m){const tags=allTags().filter(t=>t.toLowerCase().startsWith(m[1].toLowerCase()));if(tags.length){acS={active:true,field:'ai',fieldEl:el,aiIdx:i,slashPos:pos-m[0].length,query:m[1],selIdx:0};showAc(el,tags);return;}}hideAc();}
+function onAiKd(e,i){if(!acS.active)return;const tags=allTags().filter(t=>t.toLowerCase().startsWith(acS.query.toLowerCase()));if(e.key==='ArrowDown'){e.preventDefault();acS.selIdx=Math.min(acS.selIdx+1,tags.length-1);renderAcItems(tags);}else if(e.key==='ArrowUp'){e.preventDefault();acS.selIdx=Math.max(acS.selIdx-1,0);renderAcItems(tags);}else if(e.key==='Enter'||e.key==='Tab'){if(tags.length){e.preventDefault();insertTag(tags[acS.selIdx]);}}else if(e.key==='Escape')hideAc();}
+function showAc(anchor,tags){const ac=document.getElementById('tag-ac');const wr=document.getElementById('wrapper');const ar=anchor.getBoundingClientRect();const wr_=wr.getBoundingClientRect();ac.style.top=(ar.bottom-wr_.top+4)+'px';ac.style.left=(ar.left-wr_.left)+'px';renderAcItems(tags);ac.classList.add('vis');}
+function renderAcItems(tags){const ac=document.getElementById('tag-ac');ac.innerHTML=tags.map((t,i)=>`<div class="tag-ac-item${i===acS.selIdx?' sel':''}" onmousedown="insertTag('${esc(t)}')"><span class="tslash">/</span>${esc(t)}</div>`).join('')+`<div class="tag-ac-hint">↑↓ · Enter to insert</div>`;}
+function hideAc(){document.getElementById('tag-ac').classList.remove('vis');acS.active=false;}
+function insertTag(tag){hideAc();const el=acS.fieldEl;if(!el)return;const b=el.value.slice(0,acS.slashPos);const af=el.value.slice(el.selectionStart);el.value=b+'/'+tag+af;const p=b.length+1+tag.length;el.setSelectionRange(p,p);el.focus();if(acS.field==='ai'&&acS.aiIdx!=null)editorAIs[acS.aiIdx].text=el.value;}
+
+function openEditor(id){
+  editingNoteId=id;editorAIs=[];editorCats=[];editorTags=[];editorAttendees=[];
+  const n=id?D.notes.find(x=>x.id===id):null;
+  document.getElementById('editor-lbl').textContent=id?'Edit note':'New note';
+  document.getElementById('f-name').value=n?n.name||'':'';
+  document.getElementById('f-date').value=n?n.date||'':todayStr();
+  document.getElementById('f-notes').value=n?n.body||'':'';
+  document.getElementById('f-transcript').value=n?n.transcript||'':'';
+  editorCats=n?[...(n.cats||[])]:[];
+  editorTags=n?[...(n.tags||[])]:[];
+  editorAttendees=n?[...(n.attendeeList||[])]:[];
+  editorAIs=n?(n.actionItems||[]).map(a=>({...a})):[];
+  updateMsTxt();closeMsDD();hideAc();
+  renderAIList();expandWrapperToPanel();
+  renderEditorTags();
+  renderEditorAttendees();
+  document.getElementById('save-status').textContent='';
+  openPanel('editor');setTimeout(()=>document.getElementById('f-name').focus(),50);
+}
+function renderAIList(){const el=document.getElementById('ai-list');el.innerHTML=editorAIs.length?editorAIs.map((a,i)=>`<div class="ai-blk"><div class="ai-r1"><span style="color:var(--color-text-tertiary);font-size:12px;flex-shrink:0">•</span><input type="text" value="${esc(a.text)}" placeholder="Action item — type / to tag" oninput="onAiIn(event,${i})" onkeydown="onAiKd(event,${i})" style="flex:1;border:none;background:none;outline:none;font-size:14px;color:var(--color-text-primary);padding:0"><button class="icon-btn" onclick="editorAIs.splice(${i},1);renderAIList()" style="font-size:12px">✕</button></div><div class="ai-r2"><label>Owner:</label><input type="text" value="${esc(a.owner||'')}" placeholder="leave blank = assign to you" oninput="editorAIs[${i}].owner=this.value"><label>Due:</label><input type="date" value="${a.dueDate||''}" oninput="editorAIs[${i}].dueDate=this.value"></div></div>`).join(''):'<div style="padding:10px 12px;font-size:13px;color:var(--color-text-tertiary)">No action items yet</div>';}
+function addAI(){const inp=document.getElementById('ai-new-inp');const v=inp.value.trim();if(!v)return;editorAIs.push({id:uid(),text:v,owner:'',dueDate:''});inp.value='';renderAIList();expandWrapperToPanel();setTimeout(()=>{const rows=document.querySelectorAll('.ai-r1 input[type=text]');if(rows.length)rows[rows.length-1].focus();},50);}
+
+function saveNote(){
+  const name=document.getElementById('f-name').value.trim()||'Untitled';
+  const date=document.getElementById('f-date').value;
+  const attendees=editorAttendees.join(', ');
+  const attendeeList=[...editorAttendees];
+  editorAttendees.forEach(a=>{if(!D.attendees.includes(a)){D.attendees.push(a);D.attendees.sort();}});
+  const body=document.getElementById('f-notes').value.trim();
+  const transcript=document.getElementById('f-transcript').value.trim();
+  const cats=[...editorCats];
+  const actionItems=editorAIs.filter(a=>a.text.trim());
+  // Merge manually selected tags with any /Tag references in text
+  const autoTags=extractTags([body,transcript,...actionItems.map(a=>a.text)].join(' '));
+  const tags=[...new Set([...editorTags,...autoTags])];
+  const now=Date.now();
+  if(editingNoteId){const i=D.notes.findIndex(x=>x.id===editingNoteId);const old=D.notes[i];D.notes[i]={...old,name,date,attendees,attendeeList,body,transcript,cats,tags,actionItems,updated:now};syncTodos(D.notes[i],old.actionItems||[]);}
+  else{const note={id:uid(),name,date,attendees,attendeeList,body,transcript,cats,tags,actionItems,created:now,updated:now};D.notes.unshift(note);syncTodos(note,[]);}
+  persist();document.getElementById('save-status').textContent='Saved ✓';renderNotes();renderTodos();setTimeout(()=>closePanel('editor'),600);
+}
+function syncTodos(note,oldAIs){
+  const newIds=new Set(note.actionItems.map(a=>a.id));
+  D.todos=D.todos.filter(t=>!t.noteId||t.noteId!==note.id||newIds.has(t.aiId));
+  const existing=new Set(D.todos.filter(t=>t.noteId===note.id).map(t=>t.aiId));
+  note.actionItems.forEach(a=>{
+    const noOwner=!a.owner||a.owner.trim()==='';
+    // Create task if: no owner set, OR owner matches username, OR username not set yet
+    const shouldCreate = noOwner || isMe(a.owner) || !username;
+    if(!existing.has(a.id)&&shouldCreate){
+      D.todos.push({
+        id:uid(),aiId:a.id,noteId:note.id,
+        text:a.text,owner:a.owner||'',dueDate:a.dueDate||'',
+        cats:[...(note.cats||[])],tags:extractTags(a.text),
+        status:'not_started',subTasks:[],notes:'',
+        hidden:false,archived:false,
+        assignedDate:Date.now(),
+        source:note.name||(note.date?fmtD(note.date):'')
+      });
+    }
+    if(existing.has(a.id)){
+      const t=D.todos.find(x=>x.aiId===a.id&&x.noteId===note.id);
+      if(t){t.text=a.text;t.dueDate=a.dueDate||'';t.owner=a.owner||'';t.cats=[...(note.cats||[])];t.tags=extractTags(a.text);}
+    }
+  });
+}
+function deleteNote(id){D.notes=D.notes.filter(x=>x.id!==id);D.todos=D.todos.filter(t=>t.noteId!==id);persist();renderNotes();renderTodos();}
+
+function exportData(){
+  const payload=JSON.stringify(D,null,2);
+  const blob=new Blob([payload],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const dateStr=new Date().toISOString().slice(0,10);
+  a.href=url;a.download='workspace-backup-'+dateStr+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('export-msg').textContent='Backup downloaded ✓';
+  setTimeout(()=>{const el=document.getElementById('export-msg');if(el)el.textContent='';},3000);
+}
+
+function exportToClipboard(){
+  const payload=JSON.stringify(D);
+  navigator.clipboard.writeText(payload).then(()=>{
+    document.getElementById('export-msg').textContent='Copied to clipboard ✓';
+    setTimeout(()=>{const el=document.getElementById('export-msg');if(el)el.textContent='';},3000);
+  }).catch(()=>{
+    document.getElementById('export-msg').textContent='Could not access clipboard — use Download instead';
+  });
+}
+
+function importData(parsed){
+  try{
+    // Validate it looks like our data
+    if(typeof parsed!=='object'||parsed===null)throw new Error('Invalid format');
+    D=Object.assign({notes:[],todos:[],categories:[],tags:[],templates:[],attendees:[],owners:[]},parsed);
+    // Run the same backfill as load()
+    D.notes.forEach(n=>{
+      if(!n.attendeeList)n.attendeeList=n.attendees?n.attendees.split(',').map(s=>s.trim()).filter(Boolean):[];
+      if(!n.tags)n.tags=[];if(!n.cats)n.cats=[];if(!n.actionItems)n.actionItems=[];
+    });
+    D.todos.forEach(t=>{if(!t.subTasks)t.subTasks=[];if(!t.cats)t.cats=[];if(!t.tags)t.tags=[];if(!t.status)t.status='not_started';});
+    D.templates.forEach(tm=>{if(!tm.cats)tm.cats=[];if(!tm.tasks)tm.tasks=[];tm.tasks.forEach(t=>{if(!t.subTasks)t.subTasks=[];});});
+    if(!D.attendees)D.attendees=[];if(!D.owners)D.owners=[];
+    persist();
+    render();
+    renderSettingsDataFields();
+    return true;
+  }catch(e){return false;}
+}
+
+function importFromFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      const ok=importData(parsed);
+      const msg=document.getElementById('import-msg');
+      if(ok){msg.style.color='var(--color-text-success)';msg.textContent='Import successful — '+((parsed.notes||[]).length)+' notes, '+((parsed.todos||[]).length)+' tasks loaded ✓';}
+      else{msg.style.color='var(--color-text-danger)';msg.textContent='Import failed — invalid file format';}
+    }catch(err){
+      const msg=document.getElementById('import-msg');
+      msg.style.color='var(--color-text-danger)';msg.textContent='Import failed — could not parse file';
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function showPasteImport(){
+  document.getElementById('paste-import-area').style.display='block';
+  setTimeout(()=>document.getElementById('paste-import-ta').focus(),50);
+}
+
+function importFromPaste(){
+  const ta=document.getElementById('paste-import-ta');
+  if(!ta||!ta.value.trim())return;
+  try{
+    const parsed=JSON.parse(ta.value.trim());
+    const ok=importData(parsed);
+    const msg=document.getElementById('import-msg');
+    if(ok){
+      msg.style.color='var(--color-text-success)';
+      msg.textContent='Import successful — '+((parsed.notes||[]).length)+' notes, '+((parsed.todos||[]).length)+' tasks loaded ✓';
+      document.getElementById('paste-import-area').style.display='none';
+      ta.value='';
+    }else{msg.style.color='var(--color-text-danger)';msg.textContent='Import failed — invalid data format';}
+  }catch(e){
+    const msg=document.getElementById('import-msg');
+    msg.style.color='var(--color-text-danger)';msg.textContent='Import failed — invalid JSON';
+  }
+}
+
+
+// ── Settings Objects ──────────────────────────────────────────────────────
+const SETTINGS_OBJECTS = [
+  {
+    key: 'notes',
+    label: 'Notes',
+    icon: '📝',
+    desc: 'Meeting notes with attendees, action items, and transcripts.',
+    fields: [
+      {label:'Meeting name', key:'name', type:'text'},
+      {label:'Date', key:'date', type:'date'},
+      {label:'Contacts (Attendees)', key:'attendeeList', type:'contacts'},
+      {label:'Categories', key:'cats', type:'categories'},
+      {label:'Tags', key:'tags', type:'tags'},
+      {label:'Notes', key:'body', type:'textarea'},
+      {label:'Transcript', key:'transcript', type:'textarea'},
+      {label:'Action items', key:'actionItems', type:'actionItems'},
+    ],
+    countFn: ()=>(D.notes||[]).length,
+    listFn: ()=>(D.notes||[]).sort((a,b)=>new Date(b.date||b.created)-new Date(a.date||a.created)),
+  },
+  {
+    key: 'tasks',
+    label: 'Tasks',
+    icon: '✅',
+    desc: 'To-do items, action items, and scheduled tasks.',
+    fields: [
+      {label:'Task name', key:'text', type:'text'},
+      {label:'Status', key:'status', type:'status'},
+      {label:'Due date', key:'dueDate', type:'date'},
+      {label:'Owner', key:'owner', type:'contact'},
+      {label:'Categories', key:'cats', type:'categories'},
+      {label:'Tags', key:'tags', type:'tags'},
+      {label:'Sub-tasks', key:'subTasks', type:'subTasks'},
+      {label:'Notes', key:'notes', type:'textarea'},
+    ],
+    countFn: ()=>(D.todos||[]).length,
+    listFn: ()=>(D.todos||[]).filter(t=>t.status!=='completed'),
+  },
+  {
+    key: 'contacts',
+    label: 'Contacts',
+    icon: '👤',
+    desc: 'People referenced as attendees, owners, and action item assignees.',
+    fields: [
+      {label:'Name', key:'name', type:'text'},
+    ],
+    countFn: ()=>[...new Set([...(D.attendees||[]),...(D.owners||[])])].length,
+    listFn: ()=>[...new Set([...(D.attendees||[]),...(D.owners||[])])].sort().map(n=>({name:n})),
+  },
+];
+
+function renderSettingsObjectsNav(){
+  const nav=document.getElementById('settings-objects-nav');
+  if(!nav)return;
+  nav.innerHTML=SETTINGS_OBJECTS.map(obj=>
+    `<div class="settings-nav-item" onclick="switchSettingsPage('obj-${obj.key}')" id="snav-obj-${obj.key}">
+      ${obj.label}
+      <span style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto">${obj.countFn()}</span>
+    </div>`
+  ).join('');
+}
+
+function renderSettingsObjectPages(){
+  const container=document.getElementById('settings-object-pages');
+  if(!container)return;
+  container.innerHTML=SETTINGS_OBJECTS.map(obj=>`
+    <div class="settings-page" id="spage-obj-${obj.key}">
+      <h2>${obj.icon} ${obj.label}</h2>
+      <p class="subtitle">${obj.desc}</p>
+      ${renderObjFieldsSection(obj)}
+      ${renderObjRecordsSection(obj)}
+    </div>
+  `).join('');
+}
+
+function renderObjFieldsSection(obj){
+  const fields=obj.fields.filter(f=>!f.archived);
+  const archived=obj.fields.filter(f=>f.archived);
+  return`<div class="obj-section">
+    <div class="obj-section-head">
+      <span class="obj-section-title">Fields <span style="font-weight:400;color:var(--color-text-tertiary)">(${fields.length} active${archived.length?', '+archived.length+' archived':''})</span></span>
+      <button onclick="addObjField('${obj.key}')" style="font-size:12px;padding:4px 12px">+ add field</button>
+    </div>
+    <div id="obj-fields-${obj.key}">
+      ${fields.map((f,i)=>objFieldRowHtml(obj.key,f,i,false)).join('')}
+      ${archived.length?`
+        <div style="font-size:11px;color:var(--color-text-tertiary);padding:8px 0 4px;margin-top:4px;border-top:0.5px solid var(--color-border-tertiary)">Archived fields</div>
+        ${archived.map((f,i)=>objFieldRowHtml(obj.key,f,obj.fields.indexOf(f),true)).join('')}
+      `:''}
+    </div>
+    <div id="obj-add-field-${obj.key}" style="display:none" class="obj-add-row">
+      <input type="text" id="obj-field-inp-${obj.key}" placeholder="Field name..." onkeydown="if(event.key==='Enter')saveObjField('${obj.key}')">
+      <select id="obj-field-type-${obj.key}" style="font-size:12px;padding:5px 8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none">
+        <option value="text">text</option>
+        <option value="textarea">textarea</option>
+        <option value="date">date</option>
+        <option value="number">number</option>
+        <option value="categories">categories</option>
+        <option value="tags">tags</option>
+        <option value="contacts">contacts</option>
+        <option value="status">status</option>
+      </select>
+      <button onclick="saveObjField('${obj.key}')" style="font-size:12px;padding:4px 12px">Save</button>
+      <button onclick="cancelObjField('${obj.key}')" style="font-size:12px;padding:4px 12px;background:none;border:0.5px solid var(--color-border-tertiary)">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function objFieldRowHtml(objKey,f,idx,isArchived){
+  const hiddenBadge=f.hidden?`<span class="obj-field-badge badge-hidden">hidden</span>`:'';
+  const archivedBadge=isArchived?`<span class="obj-field-badge badge-archived">archived</span>`:'';
+  return`<div class="obj-field-row" id="obj-frow-${objKey}-${idx}">
+    <span class="obj-field-name" id="obj-fname-${objKey}-${idx}">${esc(f.label)}</span>
+    <span class="obj-field-type">${f.type}</span>
+    ${hiddenBadge}${archivedBadge}
+    <div class="obj-actions">
+      <button class="icon-btn" title="Edit field name" onclick="editObjFieldName('${objKey}',${idx})" style="font-size:12px">✎</button>
+      <button class="icon-btn" title="${f.hidden?'Show field':'Hide field'}" onclick="toggleObjFieldHidden('${objKey}',${idx})" style="font-size:12px">${f.hidden?'👁':'🙈'}</button>
+      <button class="icon-btn" title="${isArchived?'Restore field':'Archive field'}" onclick="toggleObjFieldArchived('${objKey}',${idx})" style="font-size:12px">${isArchived?'↩':'📦'}</button>
+    </div>
+  </div>`;
+}
+
+function renderObjRecordsSection(obj){
+  const records=obj.listFn();
+  const total=obj.countFn();
+  return`<div class="obj-section">
+    <div class="obj-section-head">
+      <span class="obj-section-title">Records <span style="font-weight:400;color:var(--color-text-tertiary)">(${total} total)</span></span>
+      <button onclick="addObjRecord('${obj.key}')" style="font-size:12px;padding:4px 12px">+ add record</button>
+    </div>
+    <div id="obj-records-${obj.key}">
+      ${records.slice(0,8).map((r,i)=>objRecordRowHtml(obj,r,i)).join('')}
+      ${total>8?`<div style="font-size:12px;color:var(--color-text-tertiary);padding:6px 0">+${total-8} more — view all in ${obj.label} tab</div>`:''}
+      ${total===0?`<div style="font-size:13px;color:var(--color-text-tertiary);padding:6px 0">No ${obj.label.toLowerCase()} yet</div>`:''}
+    </div>
+    <div id="obj-add-record-${obj.key}" style="display:none" class="obj-add-row">
+      <input type="text" id="obj-record-inp-${obj.key}" placeholder="${obj.key==='contacts'?'Contact name...':obj.key==='notes'?'Meeting name...':'Task name...'}" onkeydown="if(event.key==='Enter')saveObjRecord('${obj.key}')">
+      <button onclick="saveObjRecord('${obj.key}')" style="font-size:12px;padding:4px 12px">Save</button>
+      <button onclick="cancelObjRecord('${obj.key}')" style="font-size:12px;padding:4px 12px;background:none;border:0.5px solid var(--color-border-tertiary)">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function objRecordRowHtml(obj,r,i){
+  let name='',meta='',id=r.id||i;
+  if(obj.key==='notes'){name=r.name||'Untitled';meta=r.date?fmtD(r.date):'';}
+  else if(obj.key==='tasks'){name=r.text||'Untitled';meta=r.status||'not_started';}
+  else if(obj.key==='contacts'){name=r.name||'';meta='';}
+  const archivedBadge=r.archived?`<span class="obj-field-badge badge-archived">archived</span>`:'';
+  const hiddenBadge=r.hidden?`<span class="obj-field-badge badge-hidden">hidden</span>`:'';
+  return`<div class="obj-record-row">
+    <span class="obj-record-name">${esc(name)}</span>
+    ${meta?`<span class="obj-record-meta">${esc(meta)}</span>`:''}
+    ${archivedBadge}${hiddenBadge}
+    <div class="obj-actions">
+      <button class="icon-btn" title="Edit" onclick="editObjRecord('${obj.key}','${esc(String(id))}')" style="font-size:12px">✎</button>
+      <button class="icon-btn" title="${r.hidden?'Show':'Hide'}" onclick="toggleObjRecordHidden('${obj.key}','${esc(String(id))}')" style="font-size:12px">${r.hidden?'👁':'🙈'}</button>
+      <button class="icon-btn" title="${r.archived?'Restore':'Archive'}" onclick="toggleObjRecordArchived('${obj.key}','${esc(String(id))}')" style="font-size:12px">${r.archived?'↩':'📦'}</button>
+    </div>
+  </div>`;
+}
+
+// ── Field management ───────────────────────────────────────────────────
+function getObj(key){return SETTINGS_OBJECTS.find(o=>o.key===key);}
+
+function addObjField(key){
+  document.getElementById('obj-add-field-'+key).style.display='flex';
+  document.getElementById('obj-field-inp-'+key).focus();
+}
+function cancelObjField(key){
+  document.getElementById('obj-add-field-'+key).style.display='none';
+  document.getElementById('obj-field-inp-'+key).value='';
+}
+function saveObjField(key){
+  const inp=document.getElementById('obj-field-inp-'+key);
+  const typeEl=document.getElementById('obj-field-type-'+key);
+  const v=inp.value.trim(); if(!v)return;
+  const obj=getObj(key); if(!obj)return;
+  obj.fields.push({label:v,key:v.toLowerCase().replace(/\s+/g,'_'),type:typeEl.value,custom:true});
+  inp.value='';
+  document.getElementById('obj-add-field-'+key).style.display='none';
+  renderSettingsObjectPages();
+  switchSettingsPage('obj-'+key);
+}
+function editObjFieldName(key,idx){
+  const obj=getObj(key); if(!obj)return;
+  const span=document.getElementById('obj-fname-'+key+'-'+idx);
+  if(!span)return;
+  const cur=obj.fields[idx].label;
+  span.outerHTML=`<input class="obj-field-name editing" id="obj-fname-edit-${key}-${idx}" value="${esc(cur)}"
+    onblur="saveObjFieldName('${key}',${idx},this.value)"
+    onkeydown="if(event.key==='Enter')saveObjFieldName('${key}',${idx},this.value);if(event.key==='Escape')renderSettingsObjectPages()">`;
+  const inp=document.getElementById('obj-fname-edit-'+key+'-'+idx);
+  if(inp){inp.focus();inp.select();}
+}
+function saveObjFieldName(key,idx,val){
+  const obj=getObj(key); if(!obj)return;
+  if(val.trim())obj.fields[idx].label=val.trim();
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+function toggleObjFieldHidden(key,idx){
+  const obj=getObj(key); if(!obj)return;
+  obj.fields[idx].hidden=!obj.fields[idx].hidden;
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+function toggleObjFieldArchived(key,idx){
+  const obj=getObj(key); if(!obj)return;
+  obj.fields[idx].archived=!obj.fields[idx].archived;
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+
+// ── Record management ──────────────────────────────────────────────────
+function addObjRecord(key){
+  document.getElementById('obj-add-record-'+key).style.display='flex';
+  document.getElementById('obj-record-inp-'+key).focus();
+}
+function cancelObjRecord(key){
+  document.getElementById('obj-add-record-'+key).style.display='none';
+  document.getElementById('obj-record-inp-'+key).value='';
+}
+function saveObjRecord(key){
+  const inp=document.getElementById('obj-record-inp-'+key);
+  const v=inp.value.trim(); if(!v)return;
+  if(key==='notes'){
+    D.notes.unshift({id:uid(),name:v,date:todayStr(),attendees:'',attendeeList:[],body:'',transcript:'',cats:[],tags:[],actionItems:[],created:Date.now()});
+    persist();renderNotes();
+  } else if(key==='tasks'){
+    D.todos.push({id:uid(),text:v,status:'not_started',cats:[],tags:[],subTasks:[],assignedDate:Date.now()});
+    persist();renderTodos();
+  } else if(key==='contacts'){
+    if(!D.attendees.includes(v)){D.attendees.push(v);D.attendees.sort();}
+    if(!D.owners.includes(v)){D.owners.push(v);D.owners.sort();}
+    persist();
+  }
+  inp.value='';
+  cancelObjRecord(key);
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+function editObjRecord(key,id){
+  closeSettings();
+  if(key==='notes'){const n=D.notes.find(x=>x.id===id);if(n)openEditor(n.id);}
+  else if(key==='tasks'){
+    switchTab('todos');
+    setTimeout(()=>{expandedTodos.add(id);renderTodos();},100);
+  } else if(key==='contacts'){
+    switchSettingsPage('data-fields');
+    setTimeout(()=>toggleDataField('contacts'),100);
+  }
+}
+function toggleObjRecordHidden(key,id){
+  let rec=null;
+  if(key==='notes') rec=D.notes.find(x=>x.id===id);
+  else if(key==='tasks') rec=D.todos.find(x=>x.id===id);
+  if(rec){rec.hidden=!rec.hidden;persist();}
+  else if(key==='contacts'){/* contacts don't have individual records in D */}
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+function toggleObjRecordArchived(key,id){
+  let rec=null;
+  if(key==='notes') rec=D.notes.find(x=>x.id===id);
+  else if(key==='tasks') rec=D.todos.find(x=>x.id===id);
+  if(rec){rec.archived=!rec.archived;persist();}
+  renderSettingsObjectPages();switchSettingsPage('obj-'+key);
+}
+
+// ── Settings Core ──────────────────────────────────────────────────────
+function openSettings(){
+  renderSettingsObjectsNav();
+  renderSettingsObjectPages();
+  renderSettingsDataFields();
+  document.getElementById('settings-overlay').classList.add('open');
+  switchSettingsPage('obj-'+SETTINGS_OBJECTS[0].key);
+}
+function closeSettings(){
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+function switchSettingsPage(page){
+  document.querySelectorAll('.settings-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('spage-'+page);
+  if(pg)pg.classList.add('active');
+  const nav=document.getElementById('snav-'+page);
+  if(nav)nav.classList.add('active');
+}
+
+function renderSettingsDataFields(){
+  const fields=[
+    {key:'categories',label:'Categories',desc:'Used to organise notes, tasks, and templates.',
+     items:()=>D.categories,usageCount:(v)=>(D.notes||[]).filter(n=>(n.cats||[]).includes(v)).length+(D.todos||[]).filter(t=>(t.cats||[]).includes(v)).length+(D.templates||[]).filter(t=>(t.cats||[]).includes(v)).length},
+    {key:'tags',label:'Tags',desc:'Inline /Tag references in note and task text.',
+     items:()=>D.tags,usageCount:(v)=>(D.notes||[]).filter(n=>(n.tags||[]).includes(v)).length+(D.todos||[]).filter(t=>(t.tags||[]).includes(v)).length},
+    {key:'contacts',label:'Contacts',desc:'People in notes and tasks — attendees, owners, and assignees.',
+     items:()=>{const s=new Set([...(D.attendees||[]),...(D.owners||[])]);return[...s].sort();},
+     usageCount:(v)=>(D.notes||[]).filter(n=>(n.attendeeList||[]).includes(v)).length+(D.todos||[]).filter(t=>t.owner===v).length+(D.notes||[]).reduce((sum,n)=>sum+((n.actionItems||[]).filter(a=>a.owner===v).length),0)},
+  ];
+  const el=document.getElementById('settings-data-fields-list');
+  if(!el)return;
+  el.innerHTML=fields.map(f=>{
+    const items=f.items();
+    return`<div class="data-field-card" id="dfc-${f.key}">
+      <div class="data-field-card-header" onclick="toggleDataField('${f.key}')">
+        <div><div class="data-field-card-title">${f.label}</div><div class="data-field-card-desc">${f.desc}</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="data-field-card-count">${items.length} item${items.length!==1?'s':''}</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary)" id="dfc-arrow-${f.key}">▶</span>
+        </div>
+      </div>
+      <div class="data-field-editor" id="dfe-${f.key}">
+        <div id="dfe-list-${f.key}">${renderFieldItems(f)}</div>
+        <div class="field-add-row">
+          <input type="text" id="dfe-inp-${f.key}" placeholder="Add new ${f.label.toLowerCase().slice(0,-1)}..." onkeydown="if(event.key==='Enter')addFieldItem('${f.key}')">
+          <button onclick="addFieldItem('${f.key}')" style="font-size:12px;padding:4px 12px">+ add</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFieldItems(field){
+  const items=field.items();
+  if(!items.length)return`<div style="font-size:13px;color:var(--color-text-tertiary);padding:6px 0">No ${field.label.toLowerCase()} yet</div>`;
+  return items.map((v,i)=>`
+    <div class="field-item-row">
+      <input class="field-item-name" value="${esc(v)}" onchange="renameFieldItem('${field.key}',${i},this.value)" onblur="persistAndRefreshField('${field.key}')">
+      <span class="field-item-count">${field.usageCount(v)} use${field.usageCount(v)!==1?'s':''}</span>
+      <button class="icon-btn" onclick="deleteFieldItem('${field.key}',${i})" style="font-size:12px;color:var(--color-text-danger)" title="Delete">✕</button>
+    </div>`).join('');
+}
+
+const FIELD_DEFS={
+  categories:{items:()=>D.categories,set:(v)=>{D.categories=v;}},
+  tags:{items:()=>D.tags,set:(v)=>{D.tags=v;}},
+  contacts:{items:()=>{const s=new Set([...(D.attendees||[]),...(D.owners||[])]);return[...s].sort();},set:(v)=>{D.attendees=v;D.owners=v;}},
+};
+
+function toggleDataField(key){
+  const editor=document.getElementById('dfe-'+key);
+  const arrow=document.getElementById('dfc-arrow-'+key);
+  const open=editor.classList.toggle('open');
+  if(arrow)arrow.textContent=open?'▼':'▶';
+}
+function addFieldItem(key){
+  const inp=document.getElementById('dfe-inp-'+key);
+  if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim();
+  if(key==='contacts'){
+    if(!D.attendees.includes(v)){D.attendees.push(v);D.attendees.sort();}
+    if(!D.owners.includes(v)){D.owners.push(v);D.owners.sort();}
+    persist();
+  } else {
+    const def=FIELD_DEFS[key];const arr=def.items();
+    if(!arr.includes(v)){arr.push(v);arr.sort();def.set(arr);persist();}
+  }
+  inp.value='';persistAndRefreshField(key);
+}
+function renameFieldItem(key,idx,newVal){
+  const def=FIELD_DEFS[key];const arr=[...def.items()];
+  const old=arr[idx];arr[idx]=newVal.trim();def.set(arr);
+  if(key==='categories'){
+    D.notes.forEach(n=>{if(n.cats)n.cats=n.cats.map(c=>c===old?newVal:c);});
+    D.todos.forEach(t=>{if(t.cats)t.cats=t.cats.map(c=>c===old?newVal:c);});
+    D.templates.forEach(tm=>{if(tm.cats)tm.cats=tm.cats.map(c=>c===old?newVal:c);});
+  } else if(key==='tags'){
+    D.notes.forEach(n=>{if(n.tags)n.tags=n.tags.map(t=>t===old?newVal:t);});
+    D.todos.forEach(t=>{if(t.tags)t.tags=t.tags.map(tg=>tg===old?newVal:tg);});
+  } else if(key==='contacts'){
+    D.notes.forEach(n=>{if(n.attendeeList)n.attendeeList=n.attendeeList.map(a=>a===old?newVal:a);n.attendees=(n.attendeeList||[]).join(', ');});
+    D.todos.forEach(t=>{if(t.owner===old)t.owner=newVal;});
+    D.notes.forEach(n=>{(n.actionItems||[]).forEach(a=>{if(a.owner===old)a.owner=newVal;});});
+    if(D.attendees){const i=D.attendees.indexOf(old);if(i>-1)D.attendees[i]=newVal;}
+    if(D.owners){const i=D.owners.indexOf(old);if(i>-1)D.owners[i]=newVal;}
+  }
+}
+function deleteFieldItem(key,idx){
+  if(key==='contacts'){
+    const combined=[...new Set([...(D.attendees||[]),...(D.owners||[])])].sort();
+    const v=combined[idx];
+    D.attendees=(D.attendees||[]).filter(a=>a!==v);
+    D.owners=(D.owners||[]).filter(a=>a!==v);
+    persist();persistAndRefreshField(key);return;
+  }
+  const def=FIELD_DEFS[key];const arr=[...def.items()];
+  arr.splice(idx,1);def.set(arr);persist();persistAndRefreshField(key);
+}
+function persistAndRefreshField(key){
+  persist();renderSettingsDataFields();
+  const editor=document.getElementById('dfe-'+key);
+  const arrow=document.getElementById('dfc-arrow-'+key);
+  if(editor){editor.classList.add('open');if(arrow)arrow.textContent='▼';}
+}
+
+// Export/Import
+function render(){
+  renderNotes();
+  renderTodos();
+  renderTemplates();
+}
+
+load();
+
+function autoCompletePaydays(){
+  const today=todayStr();
+  let changed=false;
+  D.todos.forEach(t=>{
+    if((t.type==='payday'||t.autoComplete===true)&&t.dueDate&&t.dueDate<today&&t.status!=='completed'){
+      t.status='completed';
+      if(!t.completedDate)t.completedDate=new Date(t.dueDate+'T17:00:00').getTime();
+      changed=true;
+    }
+  });
+  if(changed)persist();
+}
+
+</script>
+</body>
+</html>
